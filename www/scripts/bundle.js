@@ -88,14 +88,15 @@
 
 	  var quote = '"';
 	  var regex = new RegExp(quote, 'g') ;
-	  return nodesString.replace(re,"").split(", ");
+	  return nodesString.replace(regex,"").split(", ");
 	}
 
-	function clearPreviousRing() {
-	  var svg = document.querySelector('svg');
-
-	  if(svg) {
-	    svg.parentNode.removeChild(svg);
+	function clearPreviousNodes() {
+	  var nodes = document.querySelectorAll('circle:not(.ring)');
+	  if(nodes && nodes.length) {
+	    for(var i in nodes) {
+	      nodes[i].parentNode.removeChild(nodes[i]);
+	    }
 	  }
 	}
 
@@ -116,6 +117,8 @@
 	// handle button click event
 	updateBtn.addEventListener('click', function(e) {
 	  console.log('Clicked update button!', nodeListTA.value, e);
+
+	  clearPreviousNodes();
 
 	  var arrayOfTokens = createArrayFromTextAreaTokens();
 
