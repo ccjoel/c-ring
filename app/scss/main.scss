@@ -1,0 +1,55 @@
+
+// -------------------------------- Imports -----------------------------------
+@import "../../node_modules/susy/sass/susy";
+@import "../../node_modules/breakpoint-sass/stylesheets/breakpoint";
+@import "mixins";
+@import "variables";
+@import "../../node_modules/normalize-css/normalize";
+
+/**
+ * Ops-Ring styles start here
+ */
+
+// ----------------------- Susy grid configuration ---------------------------
+$susy: (
+  columns: 12,
+  global-box-sizing:	border-box,
+	debug:	(image:	show)
+);
+
+@include	border-box-sizing;
+
+//----------------------- Import grid css after susy ------------------------
+
+@import "grid";
+
+// -------------------------- Element styles -------------------------------
+
+body {
+  color: black;
+  font-family: Roboto;
+}
+
+textarea {
+  resize: none;
+  width: 90%;
+  height: 10em;
+}
+
+nav {
+  background: rgba(225, 0, 225, 0.25);
+  ul {
+    li {
+      display: inline-block;
+      list-style: none;
+    }
+  }
+}
+
+main {
+  height: 800px;
+}
+
+// --------------------------- Class styles -----------------------------------
+
+@import "classes";

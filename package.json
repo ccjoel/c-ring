@@ -1,0 +1,31 @@
+{
+  "name": "ops-ring",
+  "version": "1.0.0",
+  "description": "Implement a small feature of OpsCenter for interview purposes -> Cassandra Cluster Ring",
+  "main": "index.html",
+  "scripts": {
+    "test": "node_modules/mocha/bin/mocha app/tests/acceptance.js -t 10000"
+  },
+  "keywords": [
+    "opscenter",
+    "ring",
+    "cluster",
+    "cassandra",
+    "d3",
+    "d3js"
+  ],
+  "author": "Joel M Quiles",
+  "license": "ISC",
+  "devDependencies": {
+    "chai": "^3.4.1",
+    "gulp": "^3.9.0",
+    "mocha": "^2.3.3",
+    "selenium-webdriver": "^2.48.2"
+  },
+  "dependencies": {
+    "big-number": "^0.3.1",
+    "breakpoint-sass": "^2.6.1",
+    "d3": "^3.5.8",
+    "susy": "^2.2.6"
+  }
+}

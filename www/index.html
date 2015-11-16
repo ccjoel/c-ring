@@ -1,0 +1,75 @@
+<!doctype html>
+<html class="no-js" lang="">
+
+  <head>
+    <meta charset="utf-8">
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Ops Ring</title>
+
+    <link rel="apple-touch-icon" href="apple-touch-icon.png">
+    <!-- Place favicon.ico in the root directory -->
+    <link href='https://fonts.googleapis.com/css?family=Roboto:400,500,300,700' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" href="styles/main.css">
+  </head>
+
+  <body>
+    <!--[if lt IE 10]>
+      <p class="browserupgrade">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p>
+    <![endif]-->
+
+    <header class="padded">
+
+      <article class="welcome">
+        <h2 id="app-name">Ops Ring</h2>
+        <p>Welcome to Ops Center!</p>
+      </article>
+
+      <nav>
+        <ul>
+          <li> <a href="#">HOME</a>
+          </li>
+          <li> <a href="#">ABOUT</a>
+          </li>
+          <li> <a href="#">FAQ</a>
+        </ul>
+          </li>
+      </nav>
+
+    </header>
+
+
+    <div class="wrap padded">
+
+      <aside class="sidebar">
+        <h2>Node Tokens</h2>
+        <p>Enter list of tokens for nodes. 0 >= Number of nodes < 101 </p>
+        <p>Possible Token values range from 0 to 2^127</p>
+        <textarea id="node-list-text-area"></textarea>
+        <button id="update-ring-btn">Update</button>
+      </aside>
+
+
+      <main class="clusters content">
+
+        <h4>Cluster Nodes</h4>
+
+        <div id="ring-container">
+
+        </div>
+
+      </main>
+
+    </div><!-- wrap -->
+
+
+    <footer class="padded">
+      <article class="status">
+        <p>Status: <span id="status-info">Waiting</span></p>
+      </article>
+    </footer>
+
+    <script src="scripts/bundle.js"></script>
+
+  </body>
+</html>

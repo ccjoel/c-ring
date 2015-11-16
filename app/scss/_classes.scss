@@ -1,0 +1,9 @@
+#ring-container {
+  background: rgba(0, 100, 100, 0.24);
+}
+
+.padded {
+  padding: $container-padding;
+}
+
+@import "header";
