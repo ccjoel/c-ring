@@ -7,6 +7,16 @@ A small project that implements a small feature of OpsCenter for interview purpo
 
 `http://ops-ring.cf`
 
+## Tested on these browsers:
+
+Google Chrome - Version 46.0.2490.80 (64-bit) - Mac OSX
+Chromium - Version 47.0.2526.16 (64-bit) - Gentoo Linux
+Mozilla Firefox - Version 41.0.1 - Mac OSX
+Safari - Version 9.0.1 (11601.2.7.2)
+PhantomJs - Version 1.9.8 - Gentoo Linux
+
+For more compatibilities by feature (svg), see the caniuse image under `docs` folder.
+
 ## Run Project
 
 The previously built project is checked to repo under `www` dir, just deploy it on a server.
