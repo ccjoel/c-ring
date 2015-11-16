@@ -7,7 +7,10 @@
 // ------------------------------ IMPORTS --------------------------------------
 
 var BigNumber = require('big-number').n; // to work with BIG numbers in javascript :)
-// Supported BigNumber methods: add/plus, minus/subtract, multiply/mult, divide/div, power/pow, mod, equals, lt, lte, gt, gte, isZero, abs
+// Supported BigNumber methods: add/plus, minus/subtract,
+// multiply/mult, divide/div, power/pow, mod,
+// equals, lt, lte, gt, gte, isZero, abs
+
 // Sample : var big = BigNumber(5).plus(97).minus(53).plus(434).multiply(5435423).add(321453).multiply(21).div(2).pow(2);
 // Sample out: 760056543044267246001 // when converting to string
 var assert = require('assert');         // node assertion library- in the browser!
@@ -16,7 +19,8 @@ var d3 = require('d3');                 // Used to create svg graphs
 
 // ----------------------------- file globals ----------------------------------
 
-var MAX_TOKEN = BigNumber(2).pow(127)+""; // 2^127 is biggest token value
+var MAX_TOKEN = BigNumber(2).pow(127)+''; // 2^127 is biggest token value
+// 2^127 = 170141183460469231731687303715884105728
 // 2^ 126 = 85070591730234615865843651857942052864
 var UNIT_CIRCLE_RADIUS = 1; // max radius value in graph circle
 
@@ -167,10 +171,17 @@ function getRatioOfToken(token) {
   if(token === '0') {
     return 0;
   }
+  if(token == MAX_TOKEN) {
+    return 0.99999;
+  }
+
+  // TODO: check if divisible by 2, then use sqrt and make ratio out of 127?
 
   console.log('received token!', token, 'of type', typeof token);
+
+  // if()
+
   var inverseRatio = BigNumber(MAX_TOKEN).divide(token);
-  // var ratio = BigNumber(token).divide(MAX_TOKEN);
   return parseInt(inverseRatio, 10);
 }
 

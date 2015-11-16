@@ -5,7 +5,7 @@ var setupGraph = graph.setupRing;
 var drawGraph = graph.drawNode;
 var getRatioOfToken = graph.getRatioOfToken;
 
-
+var big = require('big-number').n;
 
 describe('Setting up graph ring', function(){
 
@@ -45,37 +45,6 @@ describe('test bigNumber package', function(){
   // 2^127
   var max = '170141183460469231731687303715884105728';
 
-  var BigNumber = require('big-number').n;
-
-  it('should convert a big number from input string', function(){
-    console.log(10, BigNumber(10)+'');
-    console.log(16, BigNumber(2).pow(4)+'');
-
-    console.log(
-      '85070591730234615865843651857942052864',
-    BigNumber('85070591730234615865843651857942052864')+''
-  );
-
-    console.log(
-      '170141183460469231731687303715884105728',
-      BigNumber('170141183460469231731687303715884105728')+''
-    );
-  });
-
-  it('should return inverse ratio', function(){
-    console.log(BigNumber('170141183460469231731687303715884105728').divide('85070591730234615865843651857942052864')+'');
-  });
-
-  it('should be able to provide ratio', function(){
-    console.log(
-      BigNumber('85070591730234615865843651857942052864').divide('170141183460469231731687303715884105728').rest
-
-      +'');
-
-
-
-  });
-
 })
 
 describe('Ratio of big numbers function', function(){
@@ -85,6 +54,25 @@ describe('Ratio of big numbers function', function(){
   })
 
   it('should return ratio', function(){
-    // getRatioOfToken('85070591730234615865843651857942052864').to.equal()
+    expect(getRatioOfToken('85070591730234615865843651857942052864'))
+    .to.equal(2);
+
+    expect(getRatioOfToken(big(2).pow(125)+''))
+    .to.equal(4);
+
+    expect(getRatioOfToken(big(2).pow(124)+''))
+    .to.equal(8);
+
+    expect(getRatioOfToken(big(2).pow(123)+''))
+    .to.equal(16);
+
+    var val = getRatioOfToken(big(2).pow(60)+'')
+    console.log('val', val);
+    expect(val).to.equal(147573952589676410000);
+
+    var val = getRatioOfToken(big(2).pow(4)+'')
+    console.log('val', val);
+    // expect(val).to.equal(147573952589676410000);
+
   });
 });

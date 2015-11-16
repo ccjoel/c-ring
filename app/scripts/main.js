@@ -12,8 +12,11 @@
 
 var CLUSTER_NODES_TITLE_HEIGHT_USE = 60;
 
-var setupGraph = require('./graph').setupRing;
-var drawNode = require('./graph').drawNode;
+var graph = require('./graph');
+
+var setupGraph = graph.setupRing;
+var drawNode = graph.drawNode;
+
 var nodeListTA = document.querySelector('#node-list-text-area');
 
 
@@ -28,8 +31,28 @@ nodeListTA.value = '"0", "359836465"';
 
 // TODO: parse items in list, creating an array of strings
 
-drawNode("85070591730234615865843651857942052864", configuration);
+drawNode("170141183460469231731687303715884105728", configuration);
+// drawNode("170141183460469231731687303715884105727", configuration);
+// drawNode("170141183460469231731687303715884105726", configuration);
+// drawNode("170141183460469231731687303715884105720", configuration);
+// drawNode("17014118346046923173168730371588410572", configuration);
+// drawNode("85070591730234615865843651857942052864", configuration);
+// drawNode("42535295865117307932921825928971026432", configuration);
+// drawNode("21267647932558653966460912964485513216", configuration);
+//
+//
+// drawNode("10633823966279326983230456482242756608", configuration);
+//
+//
+// drawNode("3895645764574567465475548758445846453", configuration);
+// drawNode("3895645764574567465475548758445846455", configuration);
 drawNode("0", configuration);
+// drawNode("10", configuration);
+// drawNode("50", configuration);
+// drawNode("20000", configuration);
+// drawNode("200000000000000000000000", configuration);
+// drawNode("20000000000000000000000000000000", configuration);
+// drawNode("2000000000000000000000000000000000000", configuration);
 
 // TODO: call drawAllNodes
 
