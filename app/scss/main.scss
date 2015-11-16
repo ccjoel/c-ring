@@ -13,11 +13,11 @@
 // ----------------------- Susy grid configuration ---------------------------
 $susy: (
   columns: 12,
-  global-box-sizing:	border-box,
-	debug:	(image:	show)
+  global-box-sizing: border-box
 );
+// debug: (image: show)
 
-@include	border-box-sizing;
+@include border-box-sizing;
 
 //----------------------- Import grid css after susy ------------------------
 
@@ -37,7 +37,9 @@ textarea {
 }
 
 nav {
-  background: rgba(225, 0, 225, 0.25);
+  background: rgba(22, 22, 22, 0.10);
+  float: right;
+  width: 50%;
   ul {
     li {
       display: inline-block;

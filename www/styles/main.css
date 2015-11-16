@@ -335,6 +335,9 @@ table {
   border-collapse: collapse;
   border-spacing: 0; }
 
+/**
+ * Ops-Ring styles start here
+ */
 *, *:before, *:after {
   box-sizing: border-box; }
 
@@ -342,11 +345,6 @@ table {
   max-width: 100%;
   margin-left: auto;
   margin-right: auto;
-  background-image: linear-gradient(to right, rgba(102, 102, 255, 0.25), rgba(179, 179, 255, 0.25) 80%, transparent 80%);
-  background-size: 8.47458%;
-  background-origin: content-box;
-  background-clip: content-box;
-  background-position: left top;
   max-width: 100%;
   margin-left: auto;
   margin-right: auto; }
@@ -359,10 +357,16 @@ table {
     display: table;
     clear: both; }
 
+.head-wrap {
+  width: 100%; }
+  .head-wrap:after {
+    content: "";
+    display: table;
+    clear: both; }
+
 .sidebar {
   float: left;
-  width: 100%;
-  background: rgba(10, 230, 50, 0.25); }
+  width: 100%; }
   @media (min-width: 800px) {
     .sidebar {
       width: 23.72881%;
@@ -370,7 +374,6 @@ table {
 
 .content {
   width: 100%;
-  background: rgba(113, 218, 210, 0.8);
   height: 600px; }
   @media (min-width: 800px) {
     .content {
@@ -388,7 +391,9 @@ textarea {
   height: 10em; }
 
 nav {
-  background: rgba(225, 0, 225, 0.25); }
+  background: rgba(22, 22, 22, 0.1);
+  float: right;
+  width: 50%; }
   nav ul li {
     display: inline-block;
     list-style: none; }
@@ -396,8 +401,9 @@ nav {
 main {
   height: 800px; }
 
-#ring-container {
-  background: rgba(0, 100, 100, 0.24); }
-
 .padded {
-  padding: 0.5em; }
+  padding: 1em; }
+
+.welcome {
+  float: left;
+  width: 20%; }
