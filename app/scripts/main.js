@@ -15,11 +15,9 @@ var CLUSTER_NODES_TITLE_HEIGHT_USE = 60;
 var graph = require('./graph');
 
 var setupGraph = graph.setupRing;
-var drawNode = graph.drawNode;
+var drawNodes = graph.drawAllNodes;
 
 var nodeListTA = document.querySelector('#node-list-text-area');
-
-
 
 // Make the graph
 var container = document.querySelector('main');
@@ -31,20 +29,16 @@ nodeListTA.value = '"0", "359836465"';
 
 // TODO: parse items in list, creating an array of strings
 
-drawNode("170141183460469231731687303715884105728", configuration);
-drawNode("170141183460469231731687303715884105727", configuration);
-drawNode("170141183460469231731687303715884105726", configuration);
-drawNode("170141183460469231731687303715884105720", configuration);
-drawNode("17014118346046923173168730371588410572", configuration);
-drawNode("85070591730234615865843651857942052864", configuration);
-drawNode("42535295865117307932921825928971026432", configuration);
-drawNode("21267647932558653966460912964485513216", configuration);
-drawNode("10633823966279326983230456482242756608", configuration);
-drawNode("3895645764574567465475548758445846453", configuration);
-drawNode("3895645764574567465475548758445846455", configuration);
-drawNode("0", configuration);
 
-// TODO: call drawAllNodes
+// call drawAllNodes
+drawNodes(["170141183460469231731687303715884105728",
+           "170141183460469231731687303715884105727",
+           "90141183460469231700007303715884100000",
+           "85070591730234615865843651857942052864",
+           "42535295865117307932921825928971026432"],
+           configuration
+         );
+
 
 // TODO: use regex to validate that input is of format ```"0", "485745"```,
 // basically a list of numbers as strings, separated by commas.
@@ -60,9 +54,8 @@ updateBtn.addEventListener('click', function(e){
 // TODO: resize / remake graph on browser resize
 window.addEventListener('resize', function(){
   console.log('window resized!');
-})
-
-// TODO: Maybe add a random color generator function, and each node can have a diff random rgb color
+});
 
 
-// TODO: finally, expose API to window environment
+// Finally, expose API to window environment
+window.opsRing = graph;

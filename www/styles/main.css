@@ -407,3 +407,6 @@ main {
 .welcome {
   float: left;
   width: 20%; }
+
+#ring-container {
+  background-color: black; }

@@ -61,11 +61,9 @@
 	var graph = __webpack_require__(1);
 
 	var setupGraph = graph.setupRing;
-	var drawNode = graph.drawNode;
+	var drawNodes = graph.drawAllNodes;
 
 	var nodeListTA = document.querySelector('#node-list-text-area');
-
-
 
 	// Make the graph
 	var container = document.querySelector('main');
@@ -77,20 +75,16 @@
 
 	// TODO: parse items in list, creating an array of strings
 
-	drawNode("170141183460469231731687303715884105728", configuration);
-	drawNode("170141183460469231731687303715884105727", configuration);
-	drawNode("170141183460469231731687303715884105726", configuration);
-	drawNode("170141183460469231731687303715884105720", configuration);
-	drawNode("17014118346046923173168730371588410572", configuration);
-	drawNode("85070591730234615865843651857942052864", configuration);
-	drawNode("42535295865117307932921825928971026432", configuration);
-	drawNode("21267647932558653966460912964485513216", configuration);
-	drawNode("10633823966279326983230456482242756608", configuration);
-	drawNode("3895645764574567465475548758445846453", configuration);
-	drawNode("3895645764574567465475548758445846455", configuration);
-	drawNode("0", configuration);
 
-	// TODO: call drawAllNodes
+	// call drawAllNodes
+	drawNodes(["170141183460469231731687303715884105728",
+	           "170141183460469231731687303715884105727",
+	           "90141183460469231700007303715884100000",
+	           "85070591730234615865843651857942052864",
+	           "42535295865117307932921825928971026432"],
+	           configuration
+	         );
+
 
 	// TODO: use regex to validate that input is of format ```"0", "485745"```,
 	// basically a list of numbers as strings, separated by commas.
@@ -106,12 +100,11 @@
 	// TODO: resize / remake graph on browser resize
 	window.addEventListener('resize', function(){
 	  console.log('window resized!');
-	})
-
-	// TODO: Maybe add a random color generator function, and each node can have a diff random rgb color
+	});
 
 
-	// TODO: finally, expose API to window environment
+	// Finally, expose API to window environment
+	window.opsRing = graph;
 
 
 /***/ },
@@ -124,24 +117,18 @@
 	 * @since 2015-Nov-16
 	 */
 
-	// ------------------------------ IMPORTS --------------------------------------
+	// ------------------------------ NPM IMPORTS ----------------------------------
 
-	var BigNumber = __webpack_require__(2).n; // to work with BIG numbers in javascript :)
-	// Supported BigNumber methods: add/plus, minus/subtract,
-	// multiply/mult, divide/div, power/pow, mod,
-	// equals, lt, lte, gt, gte, isZero, abs
-
-	// Sample : var big = BigNumber(5).plus(97).minus(53).plus(434).multiply(5435423).add(321453).multiply(21).div(2).pow(2);
-	// Sample out: 760056543044267246001 // when converting to string
 	var assert = __webpack_require__(4);         // node assertion library- in the browser!
 	var d3 = __webpack_require__(9);                 // Used to create svg graphs
 	var randomRGB = __webpack_require__(10);         // Generate random colors for the node
 
+	// ------------------------------ lib imports ----------------------------------
+
+	var getRatioOfToken = __webpack_require__(11);
+
 	// ----------------------------- file globals ----------------------------------
 
-	var MAX_TOKEN = BigNumber(2).pow(127).plus(1)+''; // 2^127 is biggest token value
-	// 2^127 = 170141183460469231731687303715884105728
-	// 2^ 126 = 85070591730234615865843651857942052864
 	var UNIT_CIRCLE_RADIUS = 1; // max radius value in graph circle
 
 	// To modify size of ring or nodes
@@ -152,9 +139,8 @@
 
 	/**
 	 *
-	 * TODO: Description of setup function goes here
-	 *
-	 * @summary
+	 * Creates ring for ring view, taking width/height as input and outputting the
+	 * radius of the graph, to be reused by drawNodes
 	 *
 	 * @param {!Number} width of container to determine/recalculate graph width
 	 * @param {!Number} height of container to determine/recalculate graph height
@@ -163,16 +149,19 @@
 	 * @returns {Object} configuration properties set up by this fuction, for `make` to reuse
 	 *
 	 * This function may fail for several reasons:
-	 * @throws AssertionError when receiving wrong dimensions
+	 * @throws AssertionError when receiving wrong dimensions (width/height)
 	 *
 	 * @author Joel Quiles
 	 * @since 2015-Nov-16
 	 */
-
 	exports.setupRing = function(width, height, svgTargetElementId) {
 
 	  assert(typeof width === 'number', 'invalid container element width');
 	  assert(typeof height === 'number', 'invalid container element height');
+
+	  if(!!svgTargetElementId) {
+	    assert(typeof svgTargetElementId === 'string');
+	  }
 
 	  // target element defaults to body if not svgTarget provided
 	  var svgTarget = d3.select(svgTargetElementId || 'body');
@@ -180,14 +169,14 @@
 
 	  var ringRadius = radius / GRAPH_RING_RADIUS_MULTIPLIER;
 
-	  // svg
+	  // append svg element to container
 	  var svg = svgTarget.append("svg")
 	    .attr("width", width)
 	    .attr("height", height)
 	    .append("g")
 	    .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")");
 
-	  // ring
+	  // append the ring for the ring view
 	  svg.append("circle")
 	    .attr("class", "ring")
 	    .attr("r", ringRadius)
@@ -207,28 +196,22 @@
 	 * token from the max allowed token, in  other to find the place in the Ring,
 	 * using trigonometry.
 	 *
-	 * The maximum token id allowed is 2^127. There's one computer science challenge:
-	 * javascript's max number is 2^53-1
-	 *
-	 * From ECMA Section 8.5 - Numbers:
-	 * > Note that all the positive and negative integers whose magnitude is no
-	 * > greater than 2^53 are representable in the Number type...
-	 *
-	 * ES6 defines it as Number.MAX_SAFE_INTEGER.
-	 *
-	 *
-	 *
-	 * @summary
 	 * @param {!Array} nodeArray list of strings with node tokens
+	 * @param {!Object} configuration which includes a reference to svg element and radius of circle
 	 *
-	 * @author
-	 * @since
+	 * Might throw this error type:
+	 * @throws AssertionError if nodeToken is not a string, and there is no svg or radius in its configuration
+	 *
+	 * @author Joel Quiles
+	 * @since 2015-Nov-16
 	 */
+	function drawNode(nodeToken, configuration) {
 
-	exports.drawNode = function(nodeToken, configuration) {
-
-	  assert(!!nodeToken || typeof nodeToken !== 'string', 'invalid nodeToken provided');
-	  assert(!!configuration.svg || !!configuration.radius, 'invalid configuration provided');
+	  // validate token
+	  assert(nodeToken && typeof nodeToken === 'string', 'invalid nodeToken provided');
+	  assert(!isNaN(parseInt(nodeToken, 10)), 'nodeToken provided is not a number');
+	  // validate configuration
+	  assert(!!configuration.svg && !!configuration.radius, 'invalid configuration provided');
 
 	  var radius = configuration.radius;
 	  var svg = configuration.svg;
@@ -251,8 +234,6 @@
 	  // Current position of node (an arc around the ring), with bigger arc when
 	  // bigger ratio to the max allowed token
 	  var nodeTokenPosition = d3.svg.arc()
-	    .outerRadius(nodeTokenArcRadius + 1)
-	    .innerRadius(nodeTokenArcRadius - 1)
 	    .startAngle(0)
 	    .endAngle(0);
 
@@ -261,65 +242,42 @@
 	  if(ratio === 0) { // unable to divide by 0, we know the ratio by now :)
 	    ratio = 1;
 	  }
+
+	  // position of circle as radians
 	  var positionInCircle = 2 * Math.PI / ratio;
 
-	  // create a function that uses the end angle and the position of element in circle
+	  // create a function that uses the end angle 9 (in radians) and the position of element in circle
 	  var interpolateNodePosition = d3.interpolate(nodeTokenPosition.endAngle()(), positionInCircle);
 
+	  // get x and y values of coordinates, using start and end angles
 	  var x = Math.cos(interpolateNodePosition(UNIT_CIRCLE_RADIUS) - nodeTokenPosition.startAngle()()); // x coordinate of angle, using cosine to get this value
 	  var y = Math.sin(interpolateNodePosition(UNIT_CIRCLE_RADIUS) - nodeTokenPosition.startAngle()()); // y coordinate of angle, using sine to get this value
 
+	  // translate node along arc to its position
 	  d3.select(".node"+nodeToken)
 	    .attr("transform", "translate(" + nodeTokenArcRadius * y + "," + -nodeTokenArcRadius * x + ")");
 
 	}
 
-	/**
-	 * TODO:
-	 * @summary
-	 *
-	 * @param
-	 * @returns
-	 *
-	 * @throws
-	 *
-	 * @author
-	 * @since
-	 */
-	function getRatioOfToken(token) {
-
-	  if(token === '0') {
-	    return 0;
-	  }
-
-	  // TODO: check if divisible by 2, then use log and make ratio out of 127?
-
-	  var inverseRatio = BigNumber(MAX_TOKEN).divide(token);
-	  return parseInt(inverseRatio, 10);
-	}
-
-	exports.getRatioOfToken = getRatioOfToken;
+	exports.drawNode = drawNode;
 
 	/**
-	 * TODO:
-	 * @summary
+	 * Function that calls drawNode and draws all nodes
 	 *
-	 * @param
-	 * @returns
+	 * @param {!Array} nodesArray ann array of nodeTokens
+	 * @param {!Object} configuration receives an object with svg reference and radius of circle
 	 *
-	 * @throws
+	 * @throws {AssertionError} if not a valid node list array
 	 *
-	 * @author
-	 * @since
+	 * @author Joel Quiles
+	 * @since 2015-Nov-16
 	 */
-	// TODO: write a function that calls drawNode and draws all nodes
-	exports.drawAllNodes = function(nodesArray) {
+	exports.drawAllNodes = function(nodesArray, configuration) {
 	  assert(Array.isArray(nodesArray), 'invalid node list array');
 
-	  // nodesArray.forEach(function(token, index, array){
-	  //
-	  // });
-
+	  nodesArray.forEach(function(token, index, array){
+	    drawNode(token, configuration);
+	  });
 	}
 
 
@@ -11775,6 +11733,60 @@
 
 	  return randomColor;
 	}));
+
+/***/ },
+/* 11 */
+/***/ function(module, exports, __webpack_require__) {
+
+	
+	// ------------------------------ imports --------------------------------------
+
+	var BigNumber = __webpack_require__(2).n; // to work with BIG numbers in javascript :)
+	// Supported BigNumber methods: add/plus, minus/subtract,
+	// multiply/mult, divide/div, power/pow, mod,
+	// equals, lt, lte, gt, gte, isZero, abs
+	// Sample : var big = BigNumber(5).plus(97).minus(53).plus(434).multiply(5435423).add(321453).multiply(21).div(2).pow(2);
+	// Sample out: 760056543044267246001 // when converting to string
+
+	var assert = __webpack_require__(4);
+
+	// ------------------------------ globals -------------------------------------
+
+	var MAX_TOKEN = BigNumber(2).pow(127).plus(1)+''; // 2^127 is biggest token value
+
+	// 2^127 = 170141183460469231731687303715884105728
+	// 2^ 126 = 85070591730234615865843651857942052864
+
+
+	/**
+	 * The maximum token id allowed is 2^127. There's one computer science challenge:
+	 * javascript's max number is 2^53-1
+	 *
+	 * From ECMA Section 8.5 - Numbers:
+	 * > Note that all the positive and negative integers whose magnitude is no
+	 * > greater than 2^53 are representable in the Number type...
+	 *
+	 * ES6 defines it as Number.MAX_SAFE_INTEGER.
+	 *
+	 * @param {!String} token a token to calculate ratio of, compared to the MAX_TOKEN value
+	 * @returns {Number} ratio of token, as js number
+	 *
+	 *
+	 * @author Joel Quiles
+	 * @since 2015-Nov-16
+	 */
+	module.exports = function (token) {
+
+	  assert(typeof token === 'string' && !isNaN(token), 'token is not a string parseable to number');
+
+	  if(token === '0' || token === '') {                     // I WILL NOT DIVIDE BY 0
+	    return 0;
+	  }
+	  // TODO: for another algorithm, check modulus 2, then use log and make ratio out of 127 ?
+	  var inverseRatio = BigNumber(MAX_TOKEN).divide(token);
+	  return parseInt(inverseRatio, 10);
+	}
+
 
 /***/ }
 /******/ ]);
