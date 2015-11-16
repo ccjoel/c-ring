@@ -59,34 +59,29 @@
 	var CLUSTER_NODES_TITLE_HEIGHT_USE = 60;
 
 	var setupGraph = __webpack_require__(1).setupRing;
-	var drawGraph = __webpack_require__(1).drawNode;
-
+	var drawNode = __webpack_require__(1).drawNode;
 	var nodeListTA = document.querySelector('#node-list-text-area');
 
 
-	// Insert some default values into input box, so that we can see a graph
-	// at the start of the app.
-
-	// var width = elementForDimensions.offsetWidth,
-	//   height = elementForDimensions.offsetHeight;
-
-	// if the target or parent does not have a set width or height, set defaults
-	// if(!(height && width)) {
-	//   height = 500;
-	//   width = height;
-	// }
 
 	// Make the graph
-
 	var container = document.querySelector('main');
 	var configuration = setupGraph(container.offsetWidth, container.offsetHeight - CLUSTER_NODES_TITLE_HEIGHT_USE, '#ring-container', d3);
+
+	// Insert some default values into input box, so that we can see a graph
+	// at the start of the app.
+	nodeListTA.value = '"0", "359836465"';
+
+	// TODO: parse items in list, creating an array of strings
+
+	drawNode("85070591730234615865843651857942052864", configuration);
+	drawNode("0", configuration);
+
+	// TODO: call drawAllNodes
 
 	// TODO: use regex to validate that input is of format ```"0", "485745"```,
 	// basically a list of numbers as strings, separated by commas.
 
-	nodeListTA.value = '"0", "359836465"';
-
-	drawGraph(["0", "359836465"], configuration);
 
 	// TODO: handle update button click event
 	var updateBtn = document.querySelector('#update-ring-btn');
@@ -94,8 +89,6 @@
 	  console.log('Clicked update button!', nodeListTA.value, e );
 	})
 
-
-	// TODO: parse items in list, creating an array of strings
 
 	// TODO: resize / remake graph on browser resize
 	window.addEventListener('resize', function(){
@@ -132,17 +125,17 @@
 
 	var MAX_TOKEN = BigNumber(2).pow(127)+""; // 2^127 is biggest token value
 	// 2^ 126 = 85070591730234615865843651857942052864
-	var UNIT_CIRCLE_RADIUS = 1; // max value in graph circle
+	var UNIT_CIRCLE_RADIUS = 1; // max radius value in graph circle
 
+	// To modify size of ring or nodes
 	var GRAPH_RING_RADIUS_MULTIPLIER = 2.5;
-
 	var GRAPH_NODE_RADIUS_MULTIPLIER = 18;
 
 	// ------------------------------ Functions ------------------------------------
 
 	/**
 	 *
-	 * Description of setup function goes here
+	 * TODO: Description of setup function goes here
 	 *
 	 * @summary
 	 *
@@ -158,7 +151,6 @@
 	 * @author Joel Quiles
 	 * @since 2015-Nov-16
 	 */
-
 
 	exports.setupRing = function(width, height, svgTargetElementId) {
 
@@ -216,8 +208,8 @@
 
 	exports.drawNode = function(nodeToken, configuration) {
 
-	  assert(!!nodeToken && typeof nodeToken !== 'string', 'invalid nodeToken provided');
-	  assert(!!configuration.svg && !!configuration.radius, 'invalid configuration provided');
+	  assert(!!nodeToken || typeof nodeToken !== 'string', 'invalid nodeToken provided');
+	  assert(!!configuration.svg || !!configuration.radius, 'invalid configuration provided');
 
 	  var radius = configuration.radius;
 	  var svg = configuration.svg;
@@ -228,7 +220,7 @@
 
 	  // insert node into svg, positioning at ring arc.
 	  svg.append("circle")        // nodes are visualized as circles in the ring view
-	    .attr("class", "node")
+	    .attr("class", "node"+nodeToken)
 	    .attr("r", nodeRadius)    // Set radius of the node
 	    // move node's center to the ring's arc radius
 	    .attr("transform", "translate(0," + -nodeTokenArcRadius + ")")
@@ -247,8 +239,12 @@
 	    .style("fill", "rgba(55, 104, 0, 0.75)");
 
 	  // TODO: pass token parameter
-	  var ratio = getRatioOfBigNumbers(); // ratio between the provided node token value and max token
-	  var positionInCircle = 2 * Math.PI * ratio;
+	  var ratio = getRatioOfToken(nodeToken); // ratio between the provided node token value and max token
+
+	  if(ratio === 0) { // unable to divide by 0, we know the ratio by now :)
+	    ratio = 1;
+	  }
+	  var positionInCircle = 2 * Math.PI / ratio;
 
 	  // create a function that uses the end angle and the position of element in circle
 	  var interpolateNodePosition = d3.interpolate(nodeTokenPosition.endAngle()(), positionInCircle);
@@ -256,16 +252,49 @@
 	  var x = Math.cos(interpolateNodePosition(UNIT_CIRCLE_RADIUS) - nodeTokenPosition.startAngle()()); // x coordinate of angle, using cosine to get this value
 	  var y = Math.sin(interpolateNodePosition(UNIT_CIRCLE_RADIUS) - nodeTokenPosition.startAngle()()); // y coordinate of angle, using sine to get this value
 
-	  d3.select(".node")
+	  d3.select(".node"+nodeToken)
 	    .attr("transform", "translate(" + nodeTokenArcRadius * y + "," + -nodeTokenArcRadius * x + ")");
 
 	}
 
-	function getRatioOfBigNumbers(token) {
-	  return .5;
+	/**
+	 * TODO:
+	 * @summary
+	 *
+	 * @param
+	 * @returns
+	 *
+	 * @throws
+	 *
+	 * @author
+	 * @since
+	 */
+	function getRatioOfToken(token) {
+
+	  if(token === '0') {
+	    return 0;
+	  }
+
+	  console.log('received token!', token, 'of type', typeof token);
+	  var inverseRatio = BigNumber(MAX_TOKEN).divide(token);
+	  // var ratio = BigNumber(token).divide(MAX_TOKEN);
+	  return parseInt(inverseRatio, 10);
 	}
 
+	exports.getRatioOfToken = getRatioOfToken;
 
+	/**
+	 * TODO:
+	 * @summary
+	 *
+	 * @param
+	 * @returns
+	 *
+	 * @throws
+	 *
+	 * @author
+	 * @since
+	 */
 	// TODO: write a function that calls drawNode and draws all nodes
 	exports.drawAllNodes = function(nodesArray) {
 	  assert(Array.isArray(nodesArray), 'invalid node list array');

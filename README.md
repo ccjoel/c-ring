@@ -15,12 +15,17 @@ Mozilla Firefox - Version 41.0.1 - Mac OSX
 Safari - Version 9.0.1 (11601.2.7.2)
 PhantomJs - Version 1.9.8 - Gentoo Linux
 
-For more compatibilities by feature (svg), see the caniuse image under `docs` folder.
+For more compatibilities by feature (svg), see the caniuse image under `docs`
+folder, or see [1] on bottom of this README with markdown;
 
 ## Run Project
 
-The previously built project is checked to repo under `www` dir, just deploy it on a server.
+The previously built dev version is checked to repo under `www/` dir, just deploy it on a server.
 You might use a dev server, like the npm package `http-server`.
+
+## Deploying Project
+
+Dist version of the project (minified, etc) under `dist/`.
 
 ### Setting up the project
 
@@ -40,10 +45,10 @@ To process sass into css:
 ## Development
 
 During development, you might want to have these running:
-`webpack --progress --colors --watch`, to bundle files into bundle.js for import to html
-`gulp watch`, to watch for scss/sass file changes and create the main.css file
-`node_modules/mocha/bin/mocha -w app/tests/acceptance.js -t 10000`, to run acceptance tests using selenium
-`node_modules/mocha/bin/mocha -w app/tests/unit.js`, to run unit tests
+- `webpack --progress --colors --watch`, to bundle files into bundle.js for import to html
+- `gulp watch`, to watch for scss/sass file changes and create the main.css file
+- `node_modules/mocha/bin/mocha -w app/tests/acceptance.js -t 10000`, to run acceptance tests using selenium
+- `node_modules/mocha/bin/mocha -w app/tests/unit.js`, to run unit tests
 
 ## Running unit tests
 `node_modules/mocha/bin/mocha app/tests/unit.js`
@@ -66,16 +71,18 @@ To be able to run npm/bower install, you will need:
  - Usually bundled when installing nodejs
 - `webpack`: install with `npm install -g webpack`, after installing `npm`
 
-### Notes
-
-- Running under es5 environment, not using babel or es6
-- Webpack has a lot of dependencies. I don't mind but you'll see a big number of components under node_modules, and might take more to install on slow internet speeds.
-
-
 #### Technologies Used:
 
 - `D3js`
 - `Susy SASS Grids`
 - `Breakpoint Media queries`
 - `Roboto` Font from Google
-- BigNumber
+- `BigNumber` npm package
+
+##### Appendix
+[1] TODO: Add docs images from caniuse
+
+### Notes
+
+- Running under es5 environment, not using babel or es6
+- Webpack has a lot of dependencies. I don't mind but you'll see a big number of components under node_modules, and might take more to install on slow internet speeds.
