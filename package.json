@@ -26,6 +26,7 @@
     "big-number": "^0.3.1",
     "breakpoint-sass": "^2.6.1",
     "d3": "^3.5.8",
+    "randomcolor": "^0.4.2",
     "susy": "^2.2.6"
   }
 }

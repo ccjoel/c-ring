@@ -15,11 +15,11 @@ var BigNumber = require('big-number').n; // to work with BIG numbers in javascri
 // Sample out: 760056543044267246001 // when converting to string
 var assert = require('assert');         // node assertion library- in the browser!
 var d3 = require('d3');                 // Used to create svg graphs
-
+var randomRGB = require('randomcolor');         // Generate random colors for the node
 
 // ----------------------------- file globals ----------------------------------
 
-var MAX_TOKEN = BigNumber(2).pow(127)+''; // 2^127 is biggest token value
+var MAX_TOKEN = BigNumber(2).pow(127).plus(1)+''; // 2^127 is biggest token value
 // 2^127 = 170141183460469231731687303715884105728
 // 2^ 126 = 85070591730234615865843651857942052864
 var UNIT_CIRCLE_RADIUS = 1; // max radius value in graph circle
@@ -71,7 +71,9 @@ exports.setupRing = function(width, height, svgTargetElementId) {
   svg.append("circle")
     .attr("class", "ring")
     .attr("r", ringRadius)
-    .style("fill", "rgba(20, 104, 110, 1.0)");
+    .style("fill",
+    "rgba(47, 37, 37, 0.99)"
+  );
 
   return {
     svg: svg,
@@ -115,13 +117,16 @@ exports.drawNode = function(nodeToken, configuration) {
   var nodeTokenArcRadius = radius / GRAPH_RING_RADIUS_MULTIPLIER;
   var nodeRadius = radius / GRAPH_NODE_RADIUS_MULTIPLIER;         // 18 was a magic number, playing with a ratio that made sense
 
+  // Generate a random rgb color. Then force 0.3 transparency to see overlap of nodes, and change rgb to rgba format
+  var randomColor = randomRGB({format: 'rgb'}).replace(new RegExp(/[)]$/), ', 0.3)').replace('rgb', 'rgba');
+
   // insert node into svg, positioning at ring arc.
   svg.append("circle")        // nodes are visualized as circles in the ring view
     .attr("class", "node"+nodeToken)
     .attr("r", nodeRadius)    // Set radius of the node
     // move node's center to the ring's arc radius
     .attr("transform", "translate(0," + -nodeTokenArcRadius + ")")
-    .style("fill", "rgba(113, 170, 255, 0.5)");
+    .style("fill", randomColor);
 
   // Current position of node (an arc around the ring), with bigger arc when
   // bigger ratio to the max allowed token
@@ -130,12 +135,7 @@ exports.drawNode = function(nodeToken, configuration) {
     .innerRadius(nodeTokenArcRadius - 1)
     .startAngle(0)
     .endAngle(0);
-  svg.append("path")
-    .attr("class", "nodeTokenPosition")
-    .attr("d", nodeTokenPosition)
-    .style("fill", "rgba(55, 104, 0, 0.75)");
 
-  // TODO: pass token parameter
   var ratio = getRatioOfToken(nodeToken); // ratio between the provided node token value and max token
 
   if(ratio === 0) { // unable to divide by 0, we know the ratio by now :)
@@ -171,15 +171,8 @@ function getRatioOfToken(token) {
   if(token === '0') {
     return 0;
   }
-  if(token == MAX_TOKEN) {
-    return 0.99999;
-  }
 
-  // TODO: check if divisible by 2, then use sqrt and make ratio out of 127?
-
-  console.log('received token!', token, 'of type', typeof token);
-
-  // if()
+  // TODO: check if divisible by 2, then use log and make ratio out of 127?
 
   var inverseRatio = BigNumber(MAX_TOKEN).divide(token);
   return parseInt(inverseRatio, 10);
