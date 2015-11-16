@@ -9,9 +9,10 @@ Added
 TODO
 
 - Remove bower files, using npm instead
-- change www folder to dist
+- populate dist folder
+- maybe allow a configuration file, in which you specify the size of the nodes in the cluster ring, colors, etc.
 
-0.0.1 2015-11-13
+0.0.1 2015-11-16
 
 Added
 Modified
