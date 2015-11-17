@@ -50,5 +50,5 @@ module.exports = function (token) {
   // tried another algorithm, using log2 and make ratio out of 127, but it was even less accurate
   var inverseRatio = BigNumber(MAX_TOKEN).divide(token);
 
-  return parseInt(inverseRatio, 10);
+  return parseFloat(inverseRatio, 10);
 }

@@ -74,11 +74,15 @@ module.exports = function (nodeToken, configuration) {
   var ratio = getRatioOfToken(nodeToken); // ratio between the provided node token value and max token
 
   if(ratio === 0) { // unable to divide by 0, we know the ratio by now :)
-    ratio = 1;
+    ratio = 1.0;
   }
+
+  console.log('ratio', ratio);
 
   // position of circle as radians
   var positionInCircle = 2 * Math.PI / ratio;
+
+  console.log('positionInCircle', positionInCircle);
 
   // create a function that uses the end angle 9 (in radians) and the position of element in circle
   var interpolateNodePosition = d3.interpolate(nodeTokenPosition.endAngle()(), positionInCircle);
