@@ -94,8 +94,6 @@ updateBtn.addEventListener('click', function(e) {
   var arrayOfTokens = createArrayFromTextAreaTokens(nodeListTA.value);
   lastNodesValue = arrayOfTokens;
 
-  console.log('lastNodesValue', lastNodesValue);
-
   // call draw with these new nodes
   drawNodes(arrayOfTokens, configuration);
 

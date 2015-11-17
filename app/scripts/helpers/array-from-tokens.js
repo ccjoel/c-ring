@@ -40,7 +40,5 @@ module.exports = function (nodesString) {
     .replace(regexEnterN,"")
     .split(",");
 
-  console.log('array should be clean', resultArray);
-
   return resultArray;
 }

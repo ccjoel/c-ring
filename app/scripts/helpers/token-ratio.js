@@ -41,6 +41,12 @@ module.exports = function (token) {
   if(token === '0' || token === '') {                     // I WILL NOT DIVIDE BY 0
     return 0;
   }
+
+  if(BigNumber(token).gt(MAX_TOKEN)) {
+    console.warn('You have passed a higher value than 2^127. This is  not supported. Returning 0');
+    return 0;
+  }
+
   // tried another algorithm, using log2 and make ratio out of 127, but it was even less accurate
   var inverseRatio = BigNumber(MAX_TOKEN).divide(token);
 

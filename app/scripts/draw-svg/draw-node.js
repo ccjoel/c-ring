@@ -80,8 +80,6 @@ module.exports = function (nodeToken, configuration) {
   // position of circle as radians
   var positionInCircle = 2 * Math.PI / ratio;
 
-  console.log('positionInCircle', positionInCircle);
-
   // create a function that uses the end angle 9 (in radians) and the position of element in circle
   var interpolateNodePosition = d3.interpolate(nodeTokenPosition.endAngle()(), positionInCircle);
 

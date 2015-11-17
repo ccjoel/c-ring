@@ -7,12 +7,29 @@ A small project that implements a small feature of OpsCenter for interview purpo
 
 `http://ops-ring.cf`
 
-## Run Project
+# Runing Project
 
 The previously built dev version is checked to repo under `www/` dir, just deploy it on a server.
 You might use a dev server, like the npm package `http-server`.
 
 Won't minify sources for now, since it might help with inspecting.
+
+# Using the Application
+
+You may use the dev tools/console on your browser. I have exposed a function
+
+Sample call of this function with array format:
+
+ ```javascript
+window.opsRing.redrawNodes(["0","85070591730234615865843651857942052864"]);
+ ```
+
+You may also input the array contents on the textArea of the Application:
+
+`"0","85070591730234615865843651857942052864"`
+
+and press update to view the changes.
+
 
 ## Setting up the project
 `npm install`
@@ -22,11 +39,11 @@ Won't minify sources for now, since it might help with inspecting.
 The compilable assets are contained under the `app` dir. You may run these under root directory:
 
 To compile js into one bundle/file:
-`webpack`
+```webpack```
 ^ this is important, since we only import one file into index.html, and we can `require` modules as we would in a node environment.
 
 To process sass into css:
-`gulp styles`
+```gulp styles```
 
 ## Development
 
@@ -37,12 +54,7 @@ During development, you might want to have these running:
 - `node_modules/mocha/bin/mocha -w app/tests/unit.js`, to run unit tests
 
 ## Running unit tests
-`node_modules/mocha/bin/mocha app/tests/unit.js`
-
-## Running Acceptance Tests
-`node_modules/mocha/bin/mocha app/tests/acceptance.js -t 10000`
-
-Note: Automated tests were run only on phantomjs for now
+```node_modules/mocha/bin/mocha app/tests/unit.js```
 
 ## Dependencies
 

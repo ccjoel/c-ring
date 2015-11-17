@@ -140,8 +140,6 @@
 	  var arrayOfTokens = createArrayFromTextAreaTokens(nodeListTA.value);
 	  lastNodesValue = arrayOfTokens;
 
-	  console.log('lastNodesValue', lastNodesValue);
-
 	  // call draw with these new nodes
 	  drawNodes(arrayOfTokens, configuration);
 
@@ -11819,8 +11817,6 @@
 	  // position of circle as radians
 	  var positionInCircle = 2 * Math.PI / ratio;
 
-	  console.log('positionInCircle', positionInCircle);
-
 	  // create a function that uses the end angle 9 (in radians) and the position of element in circle
 	  var interpolateNodePosition = d3.interpolate(nodeTokenPosition.endAngle()(), positionInCircle);
 
@@ -11911,8 +11907,6 @@
 	    .replace(regexEnterN,"")
 	    .split(",");
 
-	  console.log('array should be clean', resultArray);
-
 	  return resultArray;
 	}
 
@@ -11964,6 +11958,12 @@
 	  if(token === '0' || token === '') {                     // I WILL NOT DIVIDE BY 0
 	    return 0;
 	  }
+
+	  if(BigNumber(token).gt(MAX_TOKEN)) {
+	    console.warn('You have passed a higher value than 2^127. This is  not supported. Returning 0');
+	    return 0;
+	  }
+
 	  // tried another algorithm, using log2 and make ratio out of 127, but it was even less accurate
 	  var inverseRatio = BigNumber(MAX_TOKEN).divide(token);
 
