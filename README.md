@@ -30,6 +30,18 @@ You may also input the array contents on the textArea of the Application:
 
 and press update to view the changes.
 
+# Project files:
+
+Actual dev code:
+```
+app
+```
+
+Dist code:
+```
+www
+```
+
 
 ## Setting up the project
 ```
