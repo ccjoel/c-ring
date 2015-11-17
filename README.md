@@ -32,7 +32,9 @@ and press update to view the changes.
 
 
 ## Setting up the project
-`npm install`
+```
+npm install
+```
 
 ## Build
 

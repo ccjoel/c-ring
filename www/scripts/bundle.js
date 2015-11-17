@@ -100,7 +100,7 @@
 
 	// Insert some default values into input box, so that we can see a graph
 	// at the start of the app.
-	nodeListTA.value = '"0", "170141183460469231731687303715884105728", "85070591730234615865843651857942052864"';
+	nodeListTA.value = '"0", "85070591730234615865843651857942052864"';
 
 	// Create ring and find dimensions
 	var configuration = setupGraph(container.offsetWidth, container.offsetHeight - CLUSTER_NODES_TITLE_HEIGHT_USE, '#ring-container');
