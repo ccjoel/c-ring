@@ -42,8 +42,7 @@ function normalizeDimensions() {
   var headerHeight = document.querySelector('header').offsetHeight;
   if (container.offsetWidth > container.offsetHeight) {
     container.style.height = container.offsetWidth - (headerHeight) - CONTAINER_PADDING + "px";
-  }
-  else if (container.offsetHeight > container.offsetWidth) {
+  } else if (container.offsetHeight > container.offsetWidth) {
     container.style.width = container.offsetHeight + "px";
   }
 }
@@ -66,14 +65,22 @@ drawNodes(createArrayFromTextAreaTokens(nodeListTA.value),
 
 var lastNodesValue = createArrayFromTextAreaTokens(nodeListTA.value);
 
+console.log('Welcome.\nThe Ring nodes change color each time they are repainted,to a random color, just to make it more fun.');
+console.log('\nYou may call window.opsRing.redrawNodes to change nodes to your pleasure.');
+console.log('Sample use with input: window.opsRing.redrawNodes(["0", "85070591730234615865843651857942052864"])');
+
 // -------------------------------- API ---------------------------------------
 // expose API to window environment
 window.opsRing = {
-  redrawNodes : function(nodesArray) {
-    // TODO: validate array
-    lastNodesValue = nodesArray;
-    clearPreviousNodes();
-    drawNodes(nodesArray, configuration);
+  redrawNodes: function(nodesArray) {
+    try {
+      clearPreviousNodes();
+      drawNodes(nodesArray, configuration);
+      lastNodesValue = nodesArray;
+    } catch (e) {
+      console.warn(e);
+      alert(e.message);
+    }
   }
 };
 
@@ -83,22 +90,32 @@ window.opsRing = {
 
 // handle button click event
 updateBtn.addEventListener('click', function(e) {
-  clearPreviousNodes();           // remove all prev nodes from svg
-  if(nodeListTA.value === "") {   // if textarea empty, do nothing
-    return;
+
+  try {
+
+    clearPreviousNodes(); // remove all prev nodes from svg
+    if (nodeListTA.value === "") { // if textarea empty, do nothing
+      return;
+    }
+    // get tokans as array
+    var arrayOfTokens = createArrayFromTextAreaTokens(nodeListTA.value);
+
+    // call draw with these new nodes
+    drawNodes(arrayOfTokens, configuration);
+    // update reference to last array of tokens
+    lastNodesValue = arrayOfTokens;
+
+  } catch (e) {
+    console.warn(e);
+    alert(e.message);
   }
-  // get tokans as array, and update reference to last array of tokens
-  var arrayOfTokens = createArrayFromTextAreaTokens(nodeListTA.value);
-  lastNodesValue = arrayOfTokens;
-  // call draw with these new nodes
-  drawNodes(arrayOfTokens, configuration);
 });
 
 // resize / remake graph on browser resize
 window.addEventListener('resize', function() {
   // remove old svg graph
   var svg = document.querySelector('svg');
-  if(svg) {
+  if (svg) {
     svg.parentNode.removeChild(svg);
   }
   resizeContainer(document, window, container, CONTAINER_PADDING);

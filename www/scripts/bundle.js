@@ -66,11 +66,11 @@
 	// ---------------------------- lib imports ------------------------------------
 
 	// include the required graph lib
-	var setupGraph = __webpack_require__(18);
-	var drawNodes = __webpack_require__(19);
-	var clearPreviousNodes = __webpack_require__(21);
-	var createArrayFromTextAreaTokens = __webpack_require__(22);
-	var resizeContainer = __webpack_require__(24);
+	var setupGraph = __webpack_require__(1);
+	var drawNodes = __webpack_require__(9);
+	var clearPreviousNodes = __webpack_require__(15);
+	var createArrayFromTextAreaTokens = __webpack_require__(16);
+	var resizeContainer = __webpack_require__(17);
 
 	// ---------------------------- DOM elements -----------------------------------
 
@@ -88,8 +88,7 @@
 	  var headerHeight = document.querySelector('header').offsetHeight;
 	  if (container.offsetWidth > container.offsetHeight) {
 	    container.style.height = container.offsetWidth - (headerHeight) - CONTAINER_PADDING + "px";
-	  }
-	  else if (container.offsetHeight > container.offsetWidth) {
+	  } else if (container.offsetHeight > container.offsetWidth) {
 	    container.style.width = container.offsetHeight + "px";
 	  }
 	}
@@ -112,14 +111,22 @@
 
 	var lastNodesValue = createArrayFromTextAreaTokens(nodeListTA.value);
 
+	console.log('Welcome.\nThe Ring nodes change color each time they are repainted,to a random color, just to make it more fun.');
+	console.log('\nYou may call window.opsRing.redrawNodes to change nodes to your pleasure.');
+	console.log('Sample use with input: window.opsRing.redrawNodes(["0", "85070591730234615865843651857942052864"])');
+
 	// -------------------------------- API ---------------------------------------
 	// expose API to window environment
 	window.opsRing = {
-	  redrawNodes : function(nodesArray) {
-	    // TODO: validate array
-	    lastNodesValue = nodesArray;
-	    clearPreviousNodes();
-	    drawNodes(nodesArray, configuration);
+	  redrawNodes: function(nodesArray) {
+	    try {
+	      clearPreviousNodes();
+	      drawNodes(nodesArray, configuration);
+	      lastNodesValue = nodesArray;
+	    } catch (e) {
+	      console.warn(e);
+	      alert(e.message);
+	    }
 	  }
 	};
 
@@ -129,22 +136,32 @@
 
 	// handle button click event
 	updateBtn.addEventListener('click', function(e) {
-	  clearPreviousNodes();           // remove all prev nodes from svg
-	  if(nodeListTA.value === "") {   // if textarea empty, do nothing
-	    return;
+
+	  try {
+
+	    clearPreviousNodes(); // remove all prev nodes from svg
+	    if (nodeListTA.value === "") { // if textarea empty, do nothing
+	      return;
+	    }
+	    // get tokans as array
+	    var arrayOfTokens = createArrayFromTextAreaTokens(nodeListTA.value);
+
+	    // call draw with these new nodes
+	    drawNodes(arrayOfTokens, configuration);
+	    // update reference to last array of tokens
+	    lastNodesValue = arrayOfTokens;
+
+	  } catch (e) {
+	    console.warn(e);
+	    alert(e.message);
 	  }
-	  // get tokans as array, and update reference to last array of tokens
-	  var arrayOfTokens = createArrayFromTextAreaTokens(nodeListTA.value);
-	  lastNodesValue = arrayOfTokens;
-	  // call draw with these new nodes
-	  drawNodes(arrayOfTokens, configuration);
 	});
 
 	// resize / remake graph on browser resize
 	window.addEventListener('resize', function() {
 	  // remove old svg graph
 	  var svg = document.querySelector('svg');
-	  if(svg) {
+	  if (svg) {
 	    svg.parentNode.removeChild(svg);
 	  }
 	  resizeContainer(document, window, container, CONTAINER_PADDING);
@@ -156,1495 +173,102 @@
 
 
 /***/ },
-/* 1 */,
+/* 1 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var d3 = __webpack_require__(2);
+	var assert = __webpack_require__(3);
+
+	var GRAPH_RING_RADIUS_MULTIPLIER = __webpack_require__(8).GRAPH_RING_RADIUS_MULTIPLIER;
+
+	/**
+	 *
+	 * Creates ring for ring view, taking width/height as input and outputting the
+	 * radius of the graph, to be reused by drawNodes
+	 *
+	 * @param {!Number} width of container to determine/recalculate graph width
+	 * @param {!Number} height of container to determine/recalculate graph height
+	 * @param {Object} svgContainerTargetElementId an element into which append the svg. sample: `#ring-container`
+	 *
+	 * @returns {Object} configuration properties set up by this fuction, for `make` to reuse
+	 *
+	 * This function may fail for several reasons:
+	 * @throws AssertionError when receiving wrong dimensions (width/height)
+	 *
+	 * @author Joel Quiles
+	 * @since 2015-Nov-16
+	 */
+	module.exports = function(width, height, svgTargetElementId) {
+
+	  assert(typeof width === 'number', 'invalid container element width');
+	  assert(typeof height === 'number', 'invalid container element height');
+
+	  if(!!svgTargetElementId) {
+	    assert(typeof svgTargetElementId === 'string');
+	  }
+
+	  // target element defaults to body if not svgTarget provided
+	  var svgTarget = d3.select(svgTargetElementId || 'body');
+	  var radius = Math.min(width, height); // the ring is a circle, the minimum of both values will make
+
+	  var ringRadius = radius / GRAPH_RING_RADIUS_MULTIPLIER;
+
+	  // append svg element to container
+	  var svg = svgTarget.append("svg")
+	    .attr("width", width)
+	    .attr("height", height)
+	    .append("g")
+	    .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")");
+
+	  // append the ring for the ring view
+	  svg.append("circle")
+	    .attr("class", "ring")
+	    .attr("r", ringRadius)
+	    .style("fill",
+	    "rgba(47, 37, 37, 0.99)"
+	  );
+
+	  document.querySelector('svg').addEventListener('click',
+	    /**
+	     * Attach event so that when we click the svg element, we log all the nodes
+	     * including nodes underneath.
+	     * Credits to Ṣhmiddty from stackoverflow for the algorithm
+	     * for finding the rest of the elementFromPoint after click
+	     * http://stackoverflow.com/questions/12847775/javascript-jquery-get-all-divs-location-at-x-y-forwarding-touches
+	     */
+	    function(event){
+	        var x = event.pageX, y = event.pageY;
+	        var allElementsClicked = [];
+
+	        // var nodesClicked = [];
+
+	        var element = document.elementFromPoint(x,y);
+	        while(element && element.tagName != "BODY" && element.tagName != "HTML"){
+
+	          if(element.nodeName === 'circle' && element.className.baseVal !== 'ring') {
+	            console.log('Clicked token: ', element.className.baseVal.replace('node',''));
+	          }
+
+	          allElementsClicked.push(element);
+	          element.style.visibility = "hidden";       // no flickering and no infinite :)
+	          element = document.elementFromPoint(x,y);
+	        }
+
+	        for(var i = 0; i < allElementsClicked.length; i++){
+	            allElementsClicked[i].style.visibility = "visible";
+	        }
+	    });
+
+	  return {
+	    svg: svg,
+	    radius: radius
+	  };
+
+	}
+
+
+/***/ },
 /* 2 */
-/***/ function(module, exports, __webpack_require__) {
-
-	module.exports = __webpack_require__(3);
-
-
-/***/ },
-/* 3 */
-/***/ function(module, exports) {
-
-	/*!
-	 * n.js -> Arithmetic operations on big integers
-	 * Pure javascript implementation, no external libraries needed
-	 * Copyright(c) 2012-2014 Alex Bardas <alex.bardas@gmail.com>
-	 * MIT Licensed
-	 * It supports the following operations:
-	 *      addition, subtraction, multiplication, division, power, absolute value
-	 * It works with both positive and negative integers
-	 */
-
-	;(function(exports, undefined) {
-
-	    var version = "0.3.1";
-
-	    // Helper function which tests if a given character is a digit
-	    var test_digit = function(digit) {
-	        return (/^\d$/.test(digit));
-	    };
-	    // Helper function which returns the absolute value of a given number
-	    var abs = function(n) {
-	        // if the function is called with no arguments then return
-	        if (typeof n === 'undefined')
-	            return;
-	        var x = new BigNumber(n, true);
-	        x.sign = 1;
-	        return x;
-	    };
-
-	    exports.n = function (number) {
-	        return new BigNumber(number);
-	    };
-
-	    var errors = {
-	        "invalid": "Invalid Number",
-	        "division by zero": "Invalid Number - Division By Zero"
-	    };
-	    // constructor function which creates a new BigNumber object
-	    // from an integer, a string, an array or other BigNumber object
-	    // if new_copy is true, the function returns a new object instance
-	    var BigNumber = function(x, new_copy) {
-	        var i;
-	        this.number = [];
-	        this.sign = 1;
-	        this.rest = 0;
-
-	        if (!x) {
-	            this.number = [0];
-	            return;
-	        }
-
-	        if (x.constructor === BigNumber) {
-	            return new_copy ? new BigNumber(x.toString()) : x;
-	       }
-
-	        // x can be an array or object
-	        // eg array: [3,2,1], ['+',3,2,1], ['-',3,2,1]
-	        // eg string: '321', '+321', -321'
-	        // every character except the first must be a digit
-
-	        if (typeof x == 'object') {
-	            if (x.length && x[0] === '-' || x[0] === '+') {
-	                this.sign = x[0] === '+' ? 1 : -1;
-	                x.shift(0);
-	            }
-	            for (i=x.length-1; i>=0; --i) {
-	                if (!this.add_digit(x[i], x))
-	                    return;
-	            }
-	        }
-
-	        else {
-	            x = x.toString();
-	            if (x.charAt(0) === '-' || x.charAt(0) === '+') {
-	                this.sign = x.charAt(0) === '+' ? 1 : -1;
-	                x = x.substring(1);
-	            }
-
-	            for (i=x.length-1; i>=0; --i) {
-	                if (!this.add_digit(parseInt(x.charAt(i), 10), x)) {
-	                    return;
-	                }
-	            }
-	        }
-	    };
-
-	    BigNumber.prototype.add_digit = function(digit, x) {
-	        if (test_digit(digit))
-	            this.number.push(digit);
-	        else {
-	            //throw (x || digit) + " is not a valid number";
-	            this.number = errors['invalid'];
-	            return false;
-	        }
-
-	        return this;
-	    };
-
-	    // returns:
-	    //      0 if this.number === n
-	    //      -1 if this.number < n
-	    //      1 if this.number > n
-	    BigNumber.prototype._compare = function(n) {
-	        // if the function is called with no arguments then return 0
-	        if (typeof n === 'undefined')
-	            return 0;
-
-	        var x = new BigNumber(n);
-	        var i;
-
-	        // If the numbers have different signs, then the positive
-	        // number is greater
-	        if (this.sign !== x.sign)
-	            return this.sign;
-
-	        // Else, check the length
-	        if (this.number.length > x.number.length)
-	            return this.sign;
-	        else if (this.number.length < x.number.length)
-	            return this.sign*(-1);
-
-	        // If they have similar length, compare the numbers
-	        // digit by digit
-	        for (i = this.number.length-1; i >= 0; --i) {
-	            if (this.number[i] > x.number[i])
-	                return this.sign;
-	            else if (this.number[i] < x.number[i])
-	                return this.sign * (-1);
-	        }
-
-	        return 0;
-	    };
-
-	    // greater than
-	    BigNumber.prototype.gt = function(n) {
-	        return this._compare(n) > 0;
-	    };
-
-	    // greater than or equal
-	    BigNumber.prototype.gte = function(n) {
-	        return this._compare(n) >= 0;
-	    };
-
-	    // this.number equals n
-	    BigNumber.prototype.equals = function(n) {
-	        return this._compare(n) === 0;
-	    };
-
-	    // less than or equal
-	    BigNumber.prototype.lte = function(n) {
-	        return this._compare(n) <= 0;
-	    };
-
-	    // less than
-	    BigNumber.prototype.lt = function(n) {
-	        return this._compare(n) < 0;
-	    };
-
-	    // this.number + n
-	    BigNumber.prototype.add = function(n) {
-	        // if the function is called with no arguments then return
-	        if (typeof n === 'undefined')
-	            return this;
-	        var x = new BigNumber(n);
-
-	        if (this.sign !== x.sign) {
-	            if (this.sign > 0) {
-	                x.sign = 1;
-	                return this.minus(x);
-	            }
-	            else {
-	                this.sign = 1;
-	                return x.minus(this);
-	            }
-	        }
-
-	        this.number = BigNumber._add(this, x);
-	        return this;
-	    };
-
-	    // this.number - n
-	    BigNumber.prototype.subtract = function(n) {
-	        // if the function is called with no arguments then return
-	        if (typeof n === 'undefined')
-	            return this;
-	        var x = new BigNumber(n);
-
-	        if (this.sign !== x.sign) {
-	            this.number = BigNumber._add(this, x);
-	            return this;
-	        }
-
-	        // if current number is lesser than x, final result will be negative
-	        this.sign = (this.lt(x)) ? -1 : 1;
-	        this.number = (abs(this).lt(abs(x))) ?
-	            BigNumber._subtract(x, this) :
-	            BigNumber._subtract(this, x);
-
-	        return this;
-	    };
-
-	    // adds two positive BigNumbers
-	    BigNumber._add = function(a, b) {
-	        var i;
-	        var remainder = 0;
-	        var length = Math.max(a.number.length, b.number.length);
-
-	        for (i = 0; i < length || remainder > 0; ++i) {
-	            a.number[i] = (remainder += (a.number[i] || 0) + (b.number[i] || 0)) % 10;
-	            remainder = Math.floor(remainder/10);
-	        }
-
-	        return a.number;
-	    };
-
-	    // decreases b from a
-	    // a and b are 2 positive BigNumbers and a > b
-	    BigNumber._subtract = function(a, b) {
-	        var i;
-	        var remainder = 0;
-	        var length = a.number.length;
-
-	        for (i = 0; i < length; ++i) {
-	            a.number[i] -= (b.number[i] || 0) + remainder;
-	            a.number[i] += (remainder = (a.number[i] < 0) ? 1 : 0) * 10;
-	        }
-	        // let's optimize a bit, and count the zeroes which need to be removed
-	        i = 0;
-	        length = a.number.length - 1;
-	        while (a.number[length - i] === 0 && length - i > 0)
-	            i++;
-	        if (i > 0)
-	            a.number.splice(-i);
-	        return a.number;
-	    };
-
-	    // this.number * n
-	    BigNumber.prototype.multiply = function(n) {
-	        // if the function is called with no arguments then return
-	        if (typeof n === 'undefined')
-	            return this;
-	        var x = new BigNumber(n);
-	        var i;
-	        var j;
-	        var remainder = 0;
-	        var result = [];
-	        // test if one of the numbers is zero
-	        if (this.isZero() || x.isZero()) {
-	            return new BigNumber(0);
-	        }
-
-	        this.sign *= x.sign;
-
-	        // multiply the numbers
-	        for (i = 0; i < this.number.length; ++i) {
-	            for (remainder = 0, j = 0; j < x.number.length || remainder > 0; ++j) {
-	                result[i + j] = (remainder += (result[i + j] || 0) + this.number[i] * (x.number[j] || 0)) % 10;
-	                remainder = Math.floor(remainder / 10);
-	            }
-	        }
-
-	        this.number = result;
-	        return this;
-	    };
-
-	    // this.number / n
-	    BigNumber.prototype.divide = function(n) {
-	        // if the function is called with no arguments then return
-	        if (typeof n === 'undefined') {
-	            return this;
-	        }
-	        var x = new BigNumber(n);
-	        var i;
-	        var j;
-	        var length;
-	        var remainder = 0;
-	        var result = [];
-	        var rest = new BigNumber();
-	        // test if one of the numbers is zero
-	        if (x.isZero()) {
-	            this.number = errors['division by zero'];
-	            return this;
-	        }
-	        else if (this.isZero()) {
-	            return new BigNumber(0);
-	        }
-	        this.sign *= x.sign;
-	        x.sign = 1;
-	        // every number divided by 1 is the same number, so don't waste time dividing them
-	        if (x.number.length === 1 && x.number[0] === 1)
-	            return this;
-
-	        for (i = this.number.length - 1; i >= 0; i--) {
-	            rest.multiply(10);
-	            rest.number[0] = this.number[i];
-	            result[i] = 0;
-	            while (x.lte(rest)) {
-	                result[i]++;
-	                rest.subtract(x);
-	            }
-	        }
-
-	        i = 0;
-	        length = result.length-1;
-	        while (result[length - i] === 0 && length - i > 0)
-	            i++;
-	        if (i > 0)
-	            result.splice(-i);
-
-	        // returns the rest as a string
-	        this.rest = rest;
-	        this.number = result;
-	        return this;
-	    };
-
-	    // this.number % n
-	    BigNumber.prototype.mod = function(n) {
-	        return this.divide(n).rest;
-	    };
-
-	    // n must be a positive number
-	    BigNumber.prototype.power = function(n) {
-	        if (typeof n === 'undefined')
-	            return;
-	        var num;
-	        // Convert the argument to a number
-	        n = +n;
-	        if (n === 0)
-	            return new BigNumber(1);
-	        if (n === 1)
-	            return this;
-
-	        num = new BigNumber(this, true);
-
-	        this.number = [1];
-	        while (n > 0) {
-	            if (n % 2 === 1) {
-	                this.multiply(num);
-	                n--;
-	                continue;
-	            }
-	            num.multiply(num);
-	            n = Math.floor(n / 2);
-	        }
-
-	        return this;
-	    };
-
-	    // |this.number|
-	    BigNumber.prototype.abs = function() {
-	        this.sign = 1;
-	        return this;
-	    };
-
-	    // is this.number == 0 ?
-	    BigNumber.prototype.isZero = function() {
-	        return (this.number.length === 1 && this.number[0] === 0);
-	    };
-
-	    // this.number.toString()
-	    BigNumber.prototype.toString = function() {
-	        var i;
-	        var x = '';
-	        if (typeof this.number === "string")
-	            return this.number;
-
-	        for (i = this.number.length-1; i >= 0; --i)
-	            x += this.number[i];
-
-	        return (this.sign > 0) ? x : ('-' + x);
-	    };
-
-	    // Use shorcuts for functions names
-	    BigNumber.prototype.plus = BigNumber.prototype.add;
-	    BigNumber.prototype.minus = BigNumber.prototype.subtract;
-	    BigNumber.prototype.div = BigNumber.prototype.divide;
-	    BigNumber.prototype.mult = BigNumber.prototype.multiply;
-	    BigNumber.prototype.pow = BigNumber.prototype.power;
-	    BigNumber.prototype.val = BigNumber.prototype.toString;
-	})(this);
-
-
-/***/ },
-/* 4 */
-/***/ function(module, exports, __webpack_require__) {
-
-	// http://wiki.commonjs.org/wiki/Unit_Testing/1.0
-	//
-	// THIS IS NOT TESTED NOR LIKELY TO WORK OUTSIDE V8!
-	//
-	// Originally from narwhal.js (http://narwhaljs.org)
-	// Copyright (c) 2009 Thomas Robinson <280north.com>
-	//
-	// Permission is hereby granted, free of charge, to any person obtaining a copy
-	// of this software and associated documentation files (the 'Software'), to
-	// deal in the Software without restriction, including without limitation the
-	// rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
-	// sell copies of the Software, and to permit persons to whom the Software is
-	// furnished to do so, subject to the following conditions:
-	//
-	// The above copyright notice and this permission notice shall be included in
-	// all copies or substantial portions of the Software.
-	//
-	// THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-	// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-	// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-	// AUTHORS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
-	// ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
-	// WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-	// when used in node, this will actually load the util module we depend on
-	// versus loading the builtin util module as happens otherwise
-	// this is a bug in node module loading as far as I am concerned
-	var util = __webpack_require__(5);
-
-	var pSlice = Array.prototype.slice;
-	var hasOwn = Object.prototype.hasOwnProperty;
-
-	// 1. The assert module provides functions that throw
-	// AssertionError's when particular conditions are not met. The
-	// assert module must conform to the following interface.
-
-	var assert = module.exports = ok;
-
-	// 2. The AssertionError is defined in assert.
-	// new assert.AssertionError({ message: message,
-	//                             actual: actual,
-	//                             expected: expected })
-
-	assert.AssertionError = function AssertionError(options) {
-	  this.name = 'AssertionError';
-	  this.actual = options.actual;
-	  this.expected = options.expected;
-	  this.operator = options.operator;
-	  if (options.message) {
-	    this.message = options.message;
-	    this.generatedMessage = false;
-	  } else {
-	    this.message = getMessage(this);
-	    this.generatedMessage = true;
-	  }
-	  var stackStartFunction = options.stackStartFunction || fail;
-
-	  if (Error.captureStackTrace) {
-	    Error.captureStackTrace(this, stackStartFunction);
-	  }
-	  else {
-	    // non v8 browsers so we can have a stacktrace
-	    var err = new Error();
-	    if (err.stack) {
-	      var out = err.stack;
-
-	      // try to strip useless frames
-	      var fn_name = stackStartFunction.name;
-	      var idx = out.indexOf('\n' + fn_name);
-	      if (idx >= 0) {
-	        // once we have located the function frame
-	        // we need to strip out everything before it (and its line)
-	        var next_line = out.indexOf('\n', idx + 1);
-	        out = out.substring(next_line + 1);
-	      }
-
-	      this.stack = out;
-	    }
-	  }
-	};
-
-	// assert.AssertionError instanceof Error
-	util.inherits(assert.AssertionError, Error);
-
-	function replacer(key, value) {
-	  if (util.isUndefined(value)) {
-	    return '' + value;
-	  }
-	  if (util.isNumber(value) && !isFinite(value)) {
-	    return value.toString();
-	  }
-	  if (util.isFunction(value) || util.isRegExp(value)) {
-	    return value.toString();
-	  }
-	  return value;
-	}
-
-	function truncate(s, n) {
-	  if (util.isString(s)) {
-	    return s.length < n ? s : s.slice(0, n);
-	  } else {
-	    return s;
-	  }
-	}
-
-	function getMessage(self) {
-	  return truncate(JSON.stringify(self.actual, replacer), 128) + ' ' +
-	         self.operator + ' ' +
-	         truncate(JSON.stringify(self.expected, replacer), 128);
-	}
-
-	// At present only the three keys mentioned above are used and
-	// understood by the spec. Implementations or sub modules can pass
-	// other keys to the AssertionError's constructor - they will be
-	// ignored.
-
-	// 3. All of the following functions must throw an AssertionError
-	// when a corresponding condition is not met, with a message that
-	// may be undefined if not provided.  All assertion methods provide
-	// both the actual and expected values to the assertion error for
-	// display purposes.
-
-	function fail(actual, expected, message, operator, stackStartFunction) {
-	  throw new assert.AssertionError({
-	    message: message,
-	    actual: actual,
-	    expected: expected,
-	    operator: operator,
-	    stackStartFunction: stackStartFunction
-	  });
-	}
-
-	// EXTENSION! allows for well behaved errors defined elsewhere.
-	assert.fail = fail;
-
-	// 4. Pure assertion tests whether a value is truthy, as determined
-	// by !!guard.
-	// assert.ok(guard, message_opt);
-	// This statement is equivalent to assert.equal(true, !!guard,
-	// message_opt);. To test strictly for the value true, use
-	// assert.strictEqual(true, guard, message_opt);.
-
-	function ok(value, message) {
-	  if (!value) fail(value, true, message, '==', assert.ok);
-	}
-	assert.ok = ok;
-
-	// 5. The equality assertion tests shallow, coercive equality with
-	// ==.
-	// assert.equal(actual, expected, message_opt);
-
-	assert.equal = function equal(actual, expected, message) {
-	  if (actual != expected) fail(actual, expected, message, '==', assert.equal);
-	};
-
-	// 6. The non-equality assertion tests for whether two objects are not equal
-	// with != assert.notEqual(actual, expected, message_opt);
-
-	assert.notEqual = function notEqual(actual, expected, message) {
-	  if (actual == expected) {
-	    fail(actual, expected, message, '!=', assert.notEqual);
-	  }
-	};
-
-	// 7. The equivalence assertion tests a deep equality relation.
-	// assert.deepEqual(actual, expected, message_opt);
-
-	assert.deepEqual = function deepEqual(actual, expected, message) {
-	  if (!_deepEqual(actual, expected)) {
-	    fail(actual, expected, message, 'deepEqual', assert.deepEqual);
-	  }
-	};
-
-	function _deepEqual(actual, expected) {
-	  // 7.1. All identical values are equivalent, as determined by ===.
-	  if (actual === expected) {
-	    return true;
-
-	  } else if (util.isBuffer(actual) && util.isBuffer(expected)) {
-	    if (actual.length != expected.length) return false;
-
-	    for (var i = 0; i < actual.length; i++) {
-	      if (actual[i] !== expected[i]) return false;
-	    }
-
-	    return true;
-
-	  // 7.2. If the expected value is a Date object, the actual value is
-	  // equivalent if it is also a Date object that refers to the same time.
-	  } else if (util.isDate(actual) && util.isDate(expected)) {
-	    return actual.getTime() === expected.getTime();
-
-	  // 7.3 If the expected value is a RegExp object, the actual value is
-	  // equivalent if it is also a RegExp object with the same source and
-	  // properties (`global`, `multiline`, `lastIndex`, `ignoreCase`).
-	  } else if (util.isRegExp(actual) && util.isRegExp(expected)) {
-	    return actual.source === expected.source &&
-	           actual.global === expected.global &&
-	           actual.multiline === expected.multiline &&
-	           actual.lastIndex === expected.lastIndex &&
-	           actual.ignoreCase === expected.ignoreCase;
-
-	  // 7.4. Other pairs that do not both pass typeof value == 'object',
-	  // equivalence is determined by ==.
-	  } else if (!util.isObject(actual) && !util.isObject(expected)) {
-	    return actual == expected;
-
-	  // 7.5 For all other Object pairs, including Array objects, equivalence is
-	  // determined by having the same number of owned properties (as verified
-	  // with Object.prototype.hasOwnProperty.call), the same set of keys
-	  // (although not necessarily the same order), equivalent values for every
-	  // corresponding key, and an identical 'prototype' property. Note: this
-	  // accounts for both named and indexed properties on Arrays.
-	  } else {
-	    return objEquiv(actual, expected);
-	  }
-	}
-
-	function isArguments(object) {
-	  return Object.prototype.toString.call(object) == '[object Arguments]';
-	}
-
-	function objEquiv(a, b) {
-	  if (util.isNullOrUndefined(a) || util.isNullOrUndefined(b))
-	    return false;
-	  // an identical 'prototype' property.
-	  if (a.prototype !== b.prototype) return false;
-	  // if one is a primitive, the other must be same
-	  if (util.isPrimitive(a) || util.isPrimitive(b)) {
-	    return a === b;
-	  }
-	  var aIsArgs = isArguments(a),
-	      bIsArgs = isArguments(b);
-	  if ((aIsArgs && !bIsArgs) || (!aIsArgs && bIsArgs))
-	    return false;
-	  if (aIsArgs) {
-	    a = pSlice.call(a);
-	    b = pSlice.call(b);
-	    return _deepEqual(a, b);
-	  }
-	  var ka = objectKeys(a),
-	      kb = objectKeys(b),
-	      key, i;
-	  // having the same number of owned properties (keys incorporates
-	  // hasOwnProperty)
-	  if (ka.length != kb.length)
-	    return false;
-	  //the same set of keys (although not necessarily the same order),
-	  ka.sort();
-	  kb.sort();
-	  //~~~cheap key test
-	  for (i = ka.length - 1; i >= 0; i--) {
-	    if (ka[i] != kb[i])
-	      return false;
-	  }
-	  //equivalent values for every corresponding key, and
-	  //~~~possibly expensive deep test
-	  for (i = ka.length - 1; i >= 0; i--) {
-	    key = ka[i];
-	    if (!_deepEqual(a[key], b[key])) return false;
-	  }
-	  return true;
-	}
-
-	// 8. The non-equivalence assertion tests for any deep inequality.
-	// assert.notDeepEqual(actual, expected, message_opt);
-
-	assert.notDeepEqual = function notDeepEqual(actual, expected, message) {
-	  if (_deepEqual(actual, expected)) {
-	    fail(actual, expected, message, 'notDeepEqual', assert.notDeepEqual);
-	  }
-	};
-
-	// 9. The strict equality assertion tests strict equality, as determined by ===.
-	// assert.strictEqual(actual, expected, message_opt);
-
-	assert.strictEqual = function strictEqual(actual, expected, message) {
-	  if (actual !== expected) {
-	    fail(actual, expected, message, '===', assert.strictEqual);
-	  }
-	};
-
-	// 10. The strict non-equality assertion tests for strict inequality, as
-	// determined by !==.  assert.notStrictEqual(actual, expected, message_opt);
-
-	assert.notStrictEqual = function notStrictEqual(actual, expected, message) {
-	  if (actual === expected) {
-	    fail(actual, expected, message, '!==', assert.notStrictEqual);
-	  }
-	};
-
-	function expectedException(actual, expected) {
-	  if (!actual || !expected) {
-	    return false;
-	  }
-
-	  if (Object.prototype.toString.call(expected) == '[object RegExp]') {
-	    return expected.test(actual);
-	  } else if (actual instanceof expected) {
-	    return true;
-	  } else if (expected.call({}, actual) === true) {
-	    return true;
-	  }
-
-	  return false;
-	}
-
-	function _throws(shouldThrow, block, expected, message) {
-	  var actual;
-
-	  if (util.isString(expected)) {
-	    message = expected;
-	    expected = null;
-	  }
-
-	  try {
-	    block();
-	  } catch (e) {
-	    actual = e;
-	  }
-
-	  message = (expected && expected.name ? ' (' + expected.name + ').' : '.') +
-	            (message ? ' ' + message : '.');
-
-	  if (shouldThrow && !actual) {
-	    fail(actual, expected, 'Missing expected exception' + message);
-	  }
-
-	  if (!shouldThrow && expectedException(actual, expected)) {
-	    fail(actual, expected, 'Got unwanted exception' + message);
-	  }
-
-	  if ((shouldThrow && actual && expected &&
-	      !expectedException(actual, expected)) || (!shouldThrow && actual)) {
-	    throw actual;
-	  }
-	}
-
-	// 11. Expected to throw an error:
-	// assert.throws(block, Error_opt, message_opt);
-
-	assert.throws = function(block, /*optional*/error, /*optional*/message) {
-	  _throws.apply(this, [true].concat(pSlice.call(arguments)));
-	};
-
-	// EXTENSION! This is annoying to write outside this module.
-	assert.doesNotThrow = function(block, /*optional*/message) {
-	  _throws.apply(this, [false].concat(pSlice.call(arguments)));
-	};
-
-	assert.ifError = function(err) { if (err) {throw err;}};
-
-	var objectKeys = Object.keys || function (obj) {
-	  var keys = [];
-	  for (var key in obj) {
-	    if (hasOwn.call(obj, key)) keys.push(key);
-	  }
-	  return keys;
-	};
-
-
-/***/ },
-/* 5 */
-/***/ function(module, exports, __webpack_require__) {
-
-	/* WEBPACK VAR INJECTION */(function(global, process) {// Copyright Joyent, Inc. and other Node contributors.
-	//
-	// Permission is hereby granted, free of charge, to any person obtaining a
-	// copy of this software and associated documentation files (the
-	// "Software"), to deal in the Software without restriction, including
-	// without limitation the rights to use, copy, modify, merge, publish,
-	// distribute, sublicense, and/or sell copies of the Software, and to permit
-	// persons to whom the Software is furnished to do so, subject to the
-	// following conditions:
-	//
-	// The above copyright notice and this permission notice shall be included
-	// in all copies or substantial portions of the Software.
-	//
-	// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
-	// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-	// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
-	// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
-	// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
-	// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
-	// USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-	var formatRegExp = /%[sdj%]/g;
-	exports.format = function(f) {
-	  if (!isString(f)) {
-	    var objects = [];
-	    for (var i = 0; i < arguments.length; i++) {
-	      objects.push(inspect(arguments[i]));
-	    }
-	    return objects.join(' ');
-	  }
-
-	  var i = 1;
-	  var args = arguments;
-	  var len = args.length;
-	  var str = String(f).replace(formatRegExp, function(x) {
-	    if (x === '%%') return '%';
-	    if (i >= len) return x;
-	    switch (x) {
-	      case '%s': return String(args[i++]);
-	      case '%d': return Number(args[i++]);
-	      case '%j':
-	        try {
-	          return JSON.stringify(args[i++]);
-	        } catch (_) {
-	          return '[Circular]';
-	        }
-	      default:
-	        return x;
-	    }
-	  });
-	  for (var x = args[i]; i < len; x = args[++i]) {
-	    if (isNull(x) || !isObject(x)) {
-	      str += ' ' + x;
-	    } else {
-	      str += ' ' + inspect(x);
-	    }
-	  }
-	  return str;
-	};
-
-
-	// Mark that a method should not be used.
-	// Returns a modified function which warns once by default.
-	// If --no-deprecation is set, then it is a no-op.
-	exports.deprecate = function(fn, msg) {
-	  // Allow for deprecating things in the process of starting up.
-	  if (isUndefined(global.process)) {
-	    return function() {
-	      return exports.deprecate(fn, msg).apply(this, arguments);
-	    };
-	  }
-
-	  if (process.noDeprecation === true) {
-	    return fn;
-	  }
-
-	  var warned = false;
-	  function deprecated() {
-	    if (!warned) {
-	      if (process.throwDeprecation) {
-	        throw new Error(msg);
-	      } else if (process.traceDeprecation) {
-	        console.trace(msg);
-	      } else {
-	        console.error(msg);
-	      }
-	      warned = true;
-	    }
-	    return fn.apply(this, arguments);
-	  }
-
-	  return deprecated;
-	};
-
-
-	var debugs = {};
-	var debugEnviron;
-	exports.debuglog = function(set) {
-	  if (isUndefined(debugEnviron))
-	    debugEnviron = process.env.NODE_DEBUG || '';
-	  set = set.toUpperCase();
-	  if (!debugs[set]) {
-	    if (new RegExp('\\b' + set + '\\b', 'i').test(debugEnviron)) {
-	      var pid = process.pid;
-	      debugs[set] = function() {
-	        var msg = exports.format.apply(exports, arguments);
-	        console.error('%s %d: %s', set, pid, msg);
-	      };
-	    } else {
-	      debugs[set] = function() {};
-	    }
-	  }
-	  return debugs[set];
-	};
-
-
-	/**
-	 * Echos the value of a value. Trys to print the value out
-	 * in the best way possible given the different types.
-	 *
-	 * @param {Object} obj The object to print out.
-	 * @param {Object} opts Optional options object that alters the output.
-	 */
-	/* legacy: obj, showHidden, depth, colors*/
-	function inspect(obj, opts) {
-	  // default options
-	  var ctx = {
-	    seen: [],
-	    stylize: stylizeNoColor
-	  };
-	  // legacy...
-	  if (arguments.length >= 3) ctx.depth = arguments[2];
-	  if (arguments.length >= 4) ctx.colors = arguments[3];
-	  if (isBoolean(opts)) {
-	    // legacy...
-	    ctx.showHidden = opts;
-	  } else if (opts) {
-	    // got an "options" object
-	    exports._extend(ctx, opts);
-	  }
-	  // set default options
-	  if (isUndefined(ctx.showHidden)) ctx.showHidden = false;
-	  if (isUndefined(ctx.depth)) ctx.depth = 2;
-	  if (isUndefined(ctx.colors)) ctx.colors = false;
-	  if (isUndefined(ctx.customInspect)) ctx.customInspect = true;
-	  if (ctx.colors) ctx.stylize = stylizeWithColor;
-	  return formatValue(ctx, obj, ctx.depth);
-	}
-	exports.inspect = inspect;
-
-
-	// http://en.wikipedia.org/wiki/ANSI_escape_code#graphics
-	inspect.colors = {
-	  'bold' : [1, 22],
-	  'italic' : [3, 23],
-	  'underline' : [4, 24],
-	  'inverse' : [7, 27],
-	  'white' : [37, 39],
-	  'grey' : [90, 39],
-	  'black' : [30, 39],
-	  'blue' : [34, 39],
-	  'cyan' : [36, 39],
-	  'green' : [32, 39],
-	  'magenta' : [35, 39],
-	  'red' : [31, 39],
-	  'yellow' : [33, 39]
-	};
-
-	// Don't use 'blue' not visible on cmd.exe
-	inspect.styles = {
-	  'special': 'cyan',
-	  'number': 'yellow',
-	  'boolean': 'yellow',
-	  'undefined': 'grey',
-	  'null': 'bold',
-	  'string': 'green',
-	  'date': 'magenta',
-	  // "name": intentionally not styling
-	  'regexp': 'red'
-	};
-
-
-	function stylizeWithColor(str, styleType) {
-	  var style = inspect.styles[styleType];
-
-	  if (style) {
-	    return '\u001b[' + inspect.colors[style][0] + 'm' + str +
-	           '\u001b[' + inspect.colors[style][1] + 'm';
-	  } else {
-	    return str;
-	  }
-	}
-
-
-	function stylizeNoColor(str, styleType) {
-	  return str;
-	}
-
-
-	function arrayToHash(array) {
-	  var hash = {};
-
-	  array.forEach(function(val, idx) {
-	    hash[val] = true;
-	  });
-
-	  return hash;
-	}
-
-
-	function formatValue(ctx, value, recurseTimes) {
-	  // Provide a hook for user-specified inspect functions.
-	  // Check that value is an object with an inspect function on it
-	  if (ctx.customInspect &&
-	      value &&
-	      isFunction(value.inspect) &&
-	      // Filter out the util module, it's inspect function is special
-	      value.inspect !== exports.inspect &&
-	      // Also filter out any prototype objects using the circular check.
-	      !(value.constructor && value.constructor.prototype === value)) {
-	    var ret = value.inspect(recurseTimes, ctx);
-	    if (!isString(ret)) {
-	      ret = formatValue(ctx, ret, recurseTimes);
-	    }
-	    return ret;
-	  }
-
-	  // Primitive types cannot have properties
-	  var primitive = formatPrimitive(ctx, value);
-	  if (primitive) {
-	    return primitive;
-	  }
-
-	  // Look up the keys of the object.
-	  var keys = Object.keys(value);
-	  var visibleKeys = arrayToHash(keys);
-
-	  if (ctx.showHidden) {
-	    keys = Object.getOwnPropertyNames(value);
-	  }
-
-	  // IE doesn't make error fields non-enumerable
-	  // http://msdn.microsoft.com/en-us/library/ie/dww52sbt(v=vs.94).aspx
-	  if (isError(value)
-	      && (keys.indexOf('message') >= 0 || keys.indexOf('description') >= 0)) {
-	    return formatError(value);
-	  }
-
-	  // Some type of object without properties can be shortcutted.
-	  if (keys.length === 0) {
-	    if (isFunction(value)) {
-	      var name = value.name ? ': ' + value.name : '';
-	      return ctx.stylize('[Function' + name + ']', 'special');
-	    }
-	    if (isRegExp(value)) {
-	      return ctx.stylize(RegExp.prototype.toString.call(value), 'regexp');
-	    }
-	    if (isDate(value)) {
-	      return ctx.stylize(Date.prototype.toString.call(value), 'date');
-	    }
-	    if (isError(value)) {
-	      return formatError(value);
-	    }
-	  }
-
-	  var base = '', array = false, braces = ['{', '}'];
-
-	  // Make Array say that they are Array
-	  if (isArray(value)) {
-	    array = true;
-	    braces = ['[', ']'];
-	  }
-
-	  // Make functions say that they are functions
-	  if (isFunction(value)) {
-	    var n = value.name ? ': ' + value.name : '';
-	    base = ' [Function' + n + ']';
-	  }
-
-	  // Make RegExps say that they are RegExps
-	  if (isRegExp(value)) {
-	    base = ' ' + RegExp.prototype.toString.call(value);
-	  }
-
-	  // Make dates with properties first say the date
-	  if (isDate(value)) {
-	    base = ' ' + Date.prototype.toUTCString.call(value);
-	  }
-
-	  // Make error with message first say the error
-	  if (isError(value)) {
-	    base = ' ' + formatError(value);
-	  }
-
-	  if (keys.length === 0 && (!array || value.length == 0)) {
-	    return braces[0] + base + braces[1];
-	  }
-
-	  if (recurseTimes < 0) {
-	    if (isRegExp(value)) {
-	      return ctx.stylize(RegExp.prototype.toString.call(value), 'regexp');
-	    } else {
-	      return ctx.stylize('[Object]', 'special');
-	    }
-	  }
-
-	  ctx.seen.push(value);
-
-	  var output;
-	  if (array) {
-	    output = formatArray(ctx, value, recurseTimes, visibleKeys, keys);
-	  } else {
-	    output = keys.map(function(key) {
-	      return formatProperty(ctx, value, recurseTimes, visibleKeys, key, array);
-	    });
-	  }
-
-	  ctx.seen.pop();
-
-	  return reduceToSingleString(output, base, braces);
-	}
-
-
-	function formatPrimitive(ctx, value) {
-	  if (isUndefined(value))
-	    return ctx.stylize('undefined', 'undefined');
-	  if (isString(value)) {
-	    var simple = '\'' + JSON.stringify(value).replace(/^"|"$/g, '')
-	                                             .replace(/'/g, "\\'")
-	                                             .replace(/\\"/g, '"') + '\'';
-	    return ctx.stylize(simple, 'string');
-	  }
-	  if (isNumber(value))
-	    return ctx.stylize('' + value, 'number');
-	  if (isBoolean(value))
-	    return ctx.stylize('' + value, 'boolean');
-	  // For some reason typeof null is "object", so special case here.
-	  if (isNull(value))
-	    return ctx.stylize('null', 'null');
-	}
-
-
-	function formatError(value) {
-	  return '[' + Error.prototype.toString.call(value) + ']';
-	}
-
-
-	function formatArray(ctx, value, recurseTimes, visibleKeys, keys) {
-	  var output = [];
-	  for (var i = 0, l = value.length; i < l; ++i) {
-	    if (hasOwnProperty(value, String(i))) {
-	      output.push(formatProperty(ctx, value, recurseTimes, visibleKeys,
-	          String(i), true));
-	    } else {
-	      output.push('');
-	    }
-	  }
-	  keys.forEach(function(key) {
-	    if (!key.match(/^\d+$/)) {
-	      output.push(formatProperty(ctx, value, recurseTimes, visibleKeys,
-	          key, true));
-	    }
-	  });
-	  return output;
-	}
-
-
-	function formatProperty(ctx, value, recurseTimes, visibleKeys, key, array) {
-	  var name, str, desc;
-	  desc = Object.getOwnPropertyDescriptor(value, key) || { value: value[key] };
-	  if (desc.get) {
-	    if (desc.set) {
-	      str = ctx.stylize('[Getter/Setter]', 'special');
-	    } else {
-	      str = ctx.stylize('[Getter]', 'special');
-	    }
-	  } else {
-	    if (desc.set) {
-	      str = ctx.stylize('[Setter]', 'special');
-	    }
-	  }
-	  if (!hasOwnProperty(visibleKeys, key)) {
-	    name = '[' + key + ']';
-	  }
-	  if (!str) {
-	    if (ctx.seen.indexOf(desc.value) < 0) {
-	      if (isNull(recurseTimes)) {
-	        str = formatValue(ctx, desc.value, null);
-	      } else {
-	        str = formatValue(ctx, desc.value, recurseTimes - 1);
-	      }
-	      if (str.indexOf('\n') > -1) {
-	        if (array) {
-	          str = str.split('\n').map(function(line) {
-	            return '  ' + line;
-	          }).join('\n').substr(2);
-	        } else {
-	          str = '\n' + str.split('\n').map(function(line) {
-	            return '   ' + line;
-	          }).join('\n');
-	        }
-	      }
-	    } else {
-	      str = ctx.stylize('[Circular]', 'special');
-	    }
-	  }
-	  if (isUndefined(name)) {
-	    if (array && key.match(/^\d+$/)) {
-	      return str;
-	    }
-	    name = JSON.stringify('' + key);
-	    if (name.match(/^"([a-zA-Z_][a-zA-Z_0-9]*)"$/)) {
-	      name = name.substr(1, name.length - 2);
-	      name = ctx.stylize(name, 'name');
-	    } else {
-	      name = name.replace(/'/g, "\\'")
-	                 .replace(/\\"/g, '"')
-	                 .replace(/(^"|"$)/g, "'");
-	      name = ctx.stylize(name, 'string');
-	    }
-	  }
-
-	  return name + ': ' + str;
-	}
-
-
-	function reduceToSingleString(output, base, braces) {
-	  var numLinesEst = 0;
-	  var length = output.reduce(function(prev, cur) {
-	    numLinesEst++;
-	    if (cur.indexOf('\n') >= 0) numLinesEst++;
-	    return prev + cur.replace(/\u001b\[\d\d?m/g, '').length + 1;
-	  }, 0);
-
-	  if (length > 60) {
-	    return braces[0] +
-	           (base === '' ? '' : base + '\n ') +
-	           ' ' +
-	           output.join(',\n  ') +
-	           ' ' +
-	           braces[1];
-	  }
-
-	  return braces[0] + base + ' ' + output.join(', ') + ' ' + braces[1];
-	}
-
-
-	// NOTE: These type checking functions intentionally don't use `instanceof`
-	// because it is fragile and can be easily faked with `Object.create()`.
-	function isArray(ar) {
-	  return Array.isArray(ar);
-	}
-	exports.isArray = isArray;
-
-	function isBoolean(arg) {
-	  return typeof arg === 'boolean';
-	}
-	exports.isBoolean = isBoolean;
-
-	function isNull(arg) {
-	  return arg === null;
-	}
-	exports.isNull = isNull;
-
-	function isNullOrUndefined(arg) {
-	  return arg == null;
-	}
-	exports.isNullOrUndefined = isNullOrUndefined;
-
-	function isNumber(arg) {
-	  return typeof arg === 'number';
-	}
-	exports.isNumber = isNumber;
-
-	function isString(arg) {
-	  return typeof arg === 'string';
-	}
-	exports.isString = isString;
-
-	function isSymbol(arg) {
-	  return typeof arg === 'symbol';
-	}
-	exports.isSymbol = isSymbol;
-
-	function isUndefined(arg) {
-	  return arg === void 0;
-	}
-	exports.isUndefined = isUndefined;
-
-	function isRegExp(re) {
-	  return isObject(re) && objectToString(re) === '[object RegExp]';
-	}
-	exports.isRegExp = isRegExp;
-
-	function isObject(arg) {
-	  return typeof arg === 'object' && arg !== null;
-	}
-	exports.isObject = isObject;
-
-	function isDate(d) {
-	  return isObject(d) && objectToString(d) === '[object Date]';
-	}
-	exports.isDate = isDate;
-
-	function isError(e) {
-	  return isObject(e) &&
-	      (objectToString(e) === '[object Error]' || e instanceof Error);
-	}
-	exports.isError = isError;
-
-	function isFunction(arg) {
-	  return typeof arg === 'function';
-	}
-	exports.isFunction = isFunction;
-
-	function isPrimitive(arg) {
-	  return arg === null ||
-	         typeof arg === 'boolean' ||
-	         typeof arg === 'number' ||
-	         typeof arg === 'string' ||
-	         typeof arg === 'symbol' ||  // ES6 symbol
-	         typeof arg === 'undefined';
-	}
-	exports.isPrimitive = isPrimitive;
-
-	exports.isBuffer = __webpack_require__(7);
-
-	function objectToString(o) {
-	  return Object.prototype.toString.call(o);
-	}
-
-
-	function pad(n) {
-	  return n < 10 ? '0' + n.toString(10) : n.toString(10);
-	}
-
-
-	var months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep',
-	              'Oct', 'Nov', 'Dec'];
-
-	// 26 Feb 16:19:34
-	function timestamp() {
-	  var d = new Date();
-	  var time = [pad(d.getHours()),
-	              pad(d.getMinutes()),
-	              pad(d.getSeconds())].join(':');
-	  return [d.getDate(), months[d.getMonth()], time].join(' ');
-	}
-
-
-	// log is just a thin wrapper to console.log that prepends a timestamp
-	exports.log = function() {
-	  console.log('%s - %s', timestamp(), exports.format.apply(exports, arguments));
-	};
-
-
-	/**
-	 * Inherit the prototype methods from one constructor into another.
-	 *
-	 * The Function.prototype.inherits from lang.js rewritten as a standalone
-	 * function (not on Function.prototype). NOTE: If this file is to be loaded
-	 * during bootstrapping this function needs to be rewritten using some native
-	 * functions as prototype setup using normal JavaScript does not work as
-	 * expected during bootstrapping (see mirror.js in r114903).
-	 *
-	 * @param {function} ctor Constructor function which needs to inherit the
-	 *     prototype.
-	 * @param {function} superCtor Constructor function to inherit prototype from.
-	 */
-	exports.inherits = __webpack_require__(8);
-
-	exports._extend = function(origin, add) {
-	  // Don't do anything if add isn't an object
-	  if (!add || !isObject(add)) return origin;
-
-	  var keys = Object.keys(add);
-	  var i = keys.length;
-	  while (i--) {
-	    origin[keys[i]] = add[keys[i]];
-	  }
-	  return origin;
-	};
-
-	function hasOwnProperty(obj, prop) {
-	  return Object.prototype.hasOwnProperty.call(obj, prop);
-	}
-
-	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }()), __webpack_require__(6)))
-
-/***/ },
-/* 6 */
-/***/ function(module, exports) {
-
-	// shim for using process in browser
-
-	var process = module.exports = {};
-	var queue = [];
-	var draining = false;
-	var currentQueue;
-	var queueIndex = -1;
-
-	function cleanUpNextTick() {
-	    draining = false;
-	    if (currentQueue.length) {
-	        queue = currentQueue.concat(queue);
-	    } else {
-	        queueIndex = -1;
-	    }
-	    if (queue.length) {
-	        drainQueue();
-	    }
-	}
-
-	function drainQueue() {
-	    if (draining) {
-	        return;
-	    }
-	    var timeout = setTimeout(cleanUpNextTick);
-	    draining = true;
-
-	    var len = queue.length;
-	    while(len) {
-	        currentQueue = queue;
-	        queue = [];
-	        while (++queueIndex < len) {
-	            if (currentQueue) {
-	                currentQueue[queueIndex].run();
-	            }
-	        }
-	        queueIndex = -1;
-	        len = queue.length;
-	    }
-	    currentQueue = null;
-	    draining = false;
-	    clearTimeout(timeout);
-	}
-
-	process.nextTick = function (fun) {
-	    var args = new Array(arguments.length - 1);
-	    if (arguments.length > 1) {
-	        for (var i = 1; i < arguments.length; i++) {
-	            args[i - 1] = arguments[i];
-	        }
-	    }
-	    queue.push(new Item(fun, args));
-	    if (queue.length === 1 && !draining) {
-	        setTimeout(drainQueue, 0);
-	    }
-	};
-
-	// v8 likes predictible objects
-	function Item(fun, array) {
-	    this.fun = fun;
-	    this.array = array;
-	}
-	Item.prototype.run = function () {
-	    this.fun.apply(null, this.array);
-	};
-	process.title = 'browser';
-	process.browser = true;
-	process.env = {};
-	process.argv = [];
-	process.version = ''; // empty string to avoid regexp issues
-	process.versions = {};
-
-	function noop() {}
-
-	process.on = noop;
-	process.addListener = noop;
-	process.once = noop;
-	process.off = noop;
-	process.removeListener = noop;
-	process.removeAllListeners = noop;
-	process.emit = noop;
-
-	process.binding = function (name) {
-	    throw new Error('process.binding is not supported');
-	};
-
-	process.cwd = function () { return '/' };
-	process.chdir = function (dir) {
-	    throw new Error('process.chdir is not supported');
-	};
-	process.umask = function() { return 0; };
-
-
-/***/ },
-/* 7 */
-/***/ function(module, exports) {
-
-	module.exports = function isBuffer(arg) {
-	  return arg && typeof arg === 'object'
-	    && typeof arg.copy === 'function'
-	    && typeof arg.fill === 'function'
-	    && typeof arg.readUInt8 === 'function';
-	}
-
-/***/ },
-/* 8 */
-/***/ function(module, exports) {
-
-	if (typeof Object.create === 'function') {
-	  // implementation from standard node.js 'util' module
-	  module.exports = function inherits(ctor, superCtor) {
-	    ctor.super_ = superCtor
-	    ctor.prototype = Object.create(superCtor.prototype, {
-	      constructor: {
-	        value: ctor,
-	        enumerable: false,
-	        writable: true,
-	        configurable: true
-	      }
-	    });
-	  };
-	} else {
-	  // old school shim for old browsers
-	  module.exports = function inherits(ctor, superCtor) {
-	    ctor.super_ = superCtor
-	    var TempCtor = function () {}
-	    TempCtor.prototype = superCtor.prototype
-	    ctor.prototype = new TempCtor()
-	    ctor.prototype.constructor = ctor
-	  }
-	}
-
-
-/***/ },
-/* 9 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_RESULT__;!function() {
@@ -11199,7 +9823,1249 @@
 	}();
 
 /***/ },
+/* 3 */
+/***/ function(module, exports, __webpack_require__) {
+
+	// http://wiki.commonjs.org/wiki/Unit_Testing/1.0
+	//
+	// THIS IS NOT TESTED NOR LIKELY TO WORK OUTSIDE V8!
+	//
+	// Originally from narwhal.js (http://narwhaljs.org)
+	// Copyright (c) 2009 Thomas Robinson <280north.com>
+	//
+	// Permission is hereby granted, free of charge, to any person obtaining a copy
+	// of this software and associated documentation files (the 'Software'), to
+	// deal in the Software without restriction, including without limitation the
+	// rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+	// sell copies of the Software, and to permit persons to whom the Software is
+	// furnished to do so, subject to the following conditions:
+	//
+	// The above copyright notice and this permission notice shall be included in
+	// all copies or substantial portions of the Software.
+	//
+	// THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+	// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+	// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+	// AUTHORS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+	// ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+	// WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+	// when used in node, this will actually load the util module we depend on
+	// versus loading the builtin util module as happens otherwise
+	// this is a bug in node module loading as far as I am concerned
+	var util = __webpack_require__(4);
+
+	var pSlice = Array.prototype.slice;
+	var hasOwn = Object.prototype.hasOwnProperty;
+
+	// 1. The assert module provides functions that throw
+	// AssertionError's when particular conditions are not met. The
+	// assert module must conform to the following interface.
+
+	var assert = module.exports = ok;
+
+	// 2. The AssertionError is defined in assert.
+	// new assert.AssertionError({ message: message,
+	//                             actual: actual,
+	//                             expected: expected })
+
+	assert.AssertionError = function AssertionError(options) {
+	  this.name = 'AssertionError';
+	  this.actual = options.actual;
+	  this.expected = options.expected;
+	  this.operator = options.operator;
+	  if (options.message) {
+	    this.message = options.message;
+	    this.generatedMessage = false;
+	  } else {
+	    this.message = getMessage(this);
+	    this.generatedMessage = true;
+	  }
+	  var stackStartFunction = options.stackStartFunction || fail;
+
+	  if (Error.captureStackTrace) {
+	    Error.captureStackTrace(this, stackStartFunction);
+	  }
+	  else {
+	    // non v8 browsers so we can have a stacktrace
+	    var err = new Error();
+	    if (err.stack) {
+	      var out = err.stack;
+
+	      // try to strip useless frames
+	      var fn_name = stackStartFunction.name;
+	      var idx = out.indexOf('\n' + fn_name);
+	      if (idx >= 0) {
+	        // once we have located the function frame
+	        // we need to strip out everything before it (and its line)
+	        var next_line = out.indexOf('\n', idx + 1);
+	        out = out.substring(next_line + 1);
+	      }
+
+	      this.stack = out;
+	    }
+	  }
+	};
+
+	// assert.AssertionError instanceof Error
+	util.inherits(assert.AssertionError, Error);
+
+	function replacer(key, value) {
+	  if (util.isUndefined(value)) {
+	    return '' + value;
+	  }
+	  if (util.isNumber(value) && !isFinite(value)) {
+	    return value.toString();
+	  }
+	  if (util.isFunction(value) || util.isRegExp(value)) {
+	    return value.toString();
+	  }
+	  return value;
+	}
+
+	function truncate(s, n) {
+	  if (util.isString(s)) {
+	    return s.length < n ? s : s.slice(0, n);
+	  } else {
+	    return s;
+	  }
+	}
+
+	function getMessage(self) {
+	  return truncate(JSON.stringify(self.actual, replacer), 128) + ' ' +
+	         self.operator + ' ' +
+	         truncate(JSON.stringify(self.expected, replacer), 128);
+	}
+
+	// At present only the three keys mentioned above are used and
+	// understood by the spec. Implementations or sub modules can pass
+	// other keys to the AssertionError's constructor - they will be
+	// ignored.
+
+	// 3. All of the following functions must throw an AssertionError
+	// when a corresponding condition is not met, with a message that
+	// may be undefined if not provided.  All assertion methods provide
+	// both the actual and expected values to the assertion error for
+	// display purposes.
+
+	function fail(actual, expected, message, operator, stackStartFunction) {
+	  throw new assert.AssertionError({
+	    message: message,
+	    actual: actual,
+	    expected: expected,
+	    operator: operator,
+	    stackStartFunction: stackStartFunction
+	  });
+	}
+
+	// EXTENSION! allows for well behaved errors defined elsewhere.
+	assert.fail = fail;
+
+	// 4. Pure assertion tests whether a value is truthy, as determined
+	// by !!guard.
+	// assert.ok(guard, message_opt);
+	// This statement is equivalent to assert.equal(true, !!guard,
+	// message_opt);. To test strictly for the value true, use
+	// assert.strictEqual(true, guard, message_opt);.
+
+	function ok(value, message) {
+	  if (!value) fail(value, true, message, '==', assert.ok);
+	}
+	assert.ok = ok;
+
+	// 5. The equality assertion tests shallow, coercive equality with
+	// ==.
+	// assert.equal(actual, expected, message_opt);
+
+	assert.equal = function equal(actual, expected, message) {
+	  if (actual != expected) fail(actual, expected, message, '==', assert.equal);
+	};
+
+	// 6. The non-equality assertion tests for whether two objects are not equal
+	// with != assert.notEqual(actual, expected, message_opt);
+
+	assert.notEqual = function notEqual(actual, expected, message) {
+	  if (actual == expected) {
+	    fail(actual, expected, message, '!=', assert.notEqual);
+	  }
+	};
+
+	// 7. The equivalence assertion tests a deep equality relation.
+	// assert.deepEqual(actual, expected, message_opt);
+
+	assert.deepEqual = function deepEqual(actual, expected, message) {
+	  if (!_deepEqual(actual, expected)) {
+	    fail(actual, expected, message, 'deepEqual', assert.deepEqual);
+	  }
+	};
+
+	function _deepEqual(actual, expected) {
+	  // 7.1. All identical values are equivalent, as determined by ===.
+	  if (actual === expected) {
+	    return true;
+
+	  } else if (util.isBuffer(actual) && util.isBuffer(expected)) {
+	    if (actual.length != expected.length) return false;
+
+	    for (var i = 0; i < actual.length; i++) {
+	      if (actual[i] !== expected[i]) return false;
+	    }
+
+	    return true;
+
+	  // 7.2. If the expected value is a Date object, the actual value is
+	  // equivalent if it is also a Date object that refers to the same time.
+	  } else if (util.isDate(actual) && util.isDate(expected)) {
+	    return actual.getTime() === expected.getTime();
+
+	  // 7.3 If the expected value is a RegExp object, the actual value is
+	  // equivalent if it is also a RegExp object with the same source and
+	  // properties (`global`, `multiline`, `lastIndex`, `ignoreCase`).
+	  } else if (util.isRegExp(actual) && util.isRegExp(expected)) {
+	    return actual.source === expected.source &&
+	           actual.global === expected.global &&
+	           actual.multiline === expected.multiline &&
+	           actual.lastIndex === expected.lastIndex &&
+	           actual.ignoreCase === expected.ignoreCase;
+
+	  // 7.4. Other pairs that do not both pass typeof value == 'object',
+	  // equivalence is determined by ==.
+	  } else if (!util.isObject(actual) && !util.isObject(expected)) {
+	    return actual == expected;
+
+	  // 7.5 For all other Object pairs, including Array objects, equivalence is
+	  // determined by having the same number of owned properties (as verified
+	  // with Object.prototype.hasOwnProperty.call), the same set of keys
+	  // (although not necessarily the same order), equivalent values for every
+	  // corresponding key, and an identical 'prototype' property. Note: this
+	  // accounts for both named and indexed properties on Arrays.
+	  } else {
+	    return objEquiv(actual, expected);
+	  }
+	}
+
+	function isArguments(object) {
+	  return Object.prototype.toString.call(object) == '[object Arguments]';
+	}
+
+	function objEquiv(a, b) {
+	  if (util.isNullOrUndefined(a) || util.isNullOrUndefined(b))
+	    return false;
+	  // an identical 'prototype' property.
+	  if (a.prototype !== b.prototype) return false;
+	  // if one is a primitive, the other must be same
+	  if (util.isPrimitive(a) || util.isPrimitive(b)) {
+	    return a === b;
+	  }
+	  var aIsArgs = isArguments(a),
+	      bIsArgs = isArguments(b);
+	  if ((aIsArgs && !bIsArgs) || (!aIsArgs && bIsArgs))
+	    return false;
+	  if (aIsArgs) {
+	    a = pSlice.call(a);
+	    b = pSlice.call(b);
+	    return _deepEqual(a, b);
+	  }
+	  var ka = objectKeys(a),
+	      kb = objectKeys(b),
+	      key, i;
+	  // having the same number of owned properties (keys incorporates
+	  // hasOwnProperty)
+	  if (ka.length != kb.length)
+	    return false;
+	  //the same set of keys (although not necessarily the same order),
+	  ka.sort();
+	  kb.sort();
+	  //~~~cheap key test
+	  for (i = ka.length - 1; i >= 0; i--) {
+	    if (ka[i] != kb[i])
+	      return false;
+	  }
+	  //equivalent values for every corresponding key, and
+	  //~~~possibly expensive deep test
+	  for (i = ka.length - 1; i >= 0; i--) {
+	    key = ka[i];
+	    if (!_deepEqual(a[key], b[key])) return false;
+	  }
+	  return true;
+	}
+
+	// 8. The non-equivalence assertion tests for any deep inequality.
+	// assert.notDeepEqual(actual, expected, message_opt);
+
+	assert.notDeepEqual = function notDeepEqual(actual, expected, message) {
+	  if (_deepEqual(actual, expected)) {
+	    fail(actual, expected, message, 'notDeepEqual', assert.notDeepEqual);
+	  }
+	};
+
+	// 9. The strict equality assertion tests strict equality, as determined by ===.
+	// assert.strictEqual(actual, expected, message_opt);
+
+	assert.strictEqual = function strictEqual(actual, expected, message) {
+	  if (actual !== expected) {
+	    fail(actual, expected, message, '===', assert.strictEqual);
+	  }
+	};
+
+	// 10. The strict non-equality assertion tests for strict inequality, as
+	// determined by !==.  assert.notStrictEqual(actual, expected, message_opt);
+
+	assert.notStrictEqual = function notStrictEqual(actual, expected, message) {
+	  if (actual === expected) {
+	    fail(actual, expected, message, '!==', assert.notStrictEqual);
+	  }
+	};
+
+	function expectedException(actual, expected) {
+	  if (!actual || !expected) {
+	    return false;
+	  }
+
+	  if (Object.prototype.toString.call(expected) == '[object RegExp]') {
+	    return expected.test(actual);
+	  } else if (actual instanceof expected) {
+	    return true;
+	  } else if (expected.call({}, actual) === true) {
+	    return true;
+	  }
+
+	  return false;
+	}
+
+	function _throws(shouldThrow, block, expected, message) {
+	  var actual;
+
+	  if (util.isString(expected)) {
+	    message = expected;
+	    expected = null;
+	  }
+
+	  try {
+	    block();
+	  } catch (e) {
+	    actual = e;
+	  }
+
+	  message = (expected && expected.name ? ' (' + expected.name + ').' : '.') +
+	            (message ? ' ' + message : '.');
+
+	  if (shouldThrow && !actual) {
+	    fail(actual, expected, 'Missing expected exception' + message);
+	  }
+
+	  if (!shouldThrow && expectedException(actual, expected)) {
+	    fail(actual, expected, 'Got unwanted exception' + message);
+	  }
+
+	  if ((shouldThrow && actual && expected &&
+	      !expectedException(actual, expected)) || (!shouldThrow && actual)) {
+	    throw actual;
+	  }
+	}
+
+	// 11. Expected to throw an error:
+	// assert.throws(block, Error_opt, message_opt);
+
+	assert.throws = function(block, /*optional*/error, /*optional*/message) {
+	  _throws.apply(this, [true].concat(pSlice.call(arguments)));
+	};
+
+	// EXTENSION! This is annoying to write outside this module.
+	assert.doesNotThrow = function(block, /*optional*/message) {
+	  _throws.apply(this, [false].concat(pSlice.call(arguments)));
+	};
+
+	assert.ifError = function(err) { if (err) {throw err;}};
+
+	var objectKeys = Object.keys || function (obj) {
+	  var keys = [];
+	  for (var key in obj) {
+	    if (hasOwn.call(obj, key)) keys.push(key);
+	  }
+	  return keys;
+	};
+
+
+/***/ },
+/* 4 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/* WEBPACK VAR INJECTION */(function(global, process) {// Copyright Joyent, Inc. and other Node contributors.
+	//
+	// Permission is hereby granted, free of charge, to any person obtaining a
+	// copy of this software and associated documentation files (the
+	// "Software"), to deal in the Software without restriction, including
+	// without limitation the rights to use, copy, modify, merge, publish,
+	// distribute, sublicense, and/or sell copies of the Software, and to permit
+	// persons to whom the Software is furnished to do so, subject to the
+	// following conditions:
+	//
+	// The above copyright notice and this permission notice shall be included
+	// in all copies or substantial portions of the Software.
+	//
+	// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+	// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+	// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
+	// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+	// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+	// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
+	// USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+	var formatRegExp = /%[sdj%]/g;
+	exports.format = function(f) {
+	  if (!isString(f)) {
+	    var objects = [];
+	    for (var i = 0; i < arguments.length; i++) {
+	      objects.push(inspect(arguments[i]));
+	    }
+	    return objects.join(' ');
+	  }
+
+	  var i = 1;
+	  var args = arguments;
+	  var len = args.length;
+	  var str = String(f).replace(formatRegExp, function(x) {
+	    if (x === '%%') return '%';
+	    if (i >= len) return x;
+	    switch (x) {
+	      case '%s': return String(args[i++]);
+	      case '%d': return Number(args[i++]);
+	      case '%j':
+	        try {
+	          return JSON.stringify(args[i++]);
+	        } catch (_) {
+	          return '[Circular]';
+	        }
+	      default:
+	        return x;
+	    }
+	  });
+	  for (var x = args[i]; i < len; x = args[++i]) {
+	    if (isNull(x) || !isObject(x)) {
+	      str += ' ' + x;
+	    } else {
+	      str += ' ' + inspect(x);
+	    }
+	  }
+	  return str;
+	};
+
+
+	// Mark that a method should not be used.
+	// Returns a modified function which warns once by default.
+	// If --no-deprecation is set, then it is a no-op.
+	exports.deprecate = function(fn, msg) {
+	  // Allow for deprecating things in the process of starting up.
+	  if (isUndefined(global.process)) {
+	    return function() {
+	      return exports.deprecate(fn, msg).apply(this, arguments);
+	    };
+	  }
+
+	  if (process.noDeprecation === true) {
+	    return fn;
+	  }
+
+	  var warned = false;
+	  function deprecated() {
+	    if (!warned) {
+	      if (process.throwDeprecation) {
+	        throw new Error(msg);
+	      } else if (process.traceDeprecation) {
+	        console.trace(msg);
+	      } else {
+	        console.error(msg);
+	      }
+	      warned = true;
+	    }
+	    return fn.apply(this, arguments);
+	  }
+
+	  return deprecated;
+	};
+
+
+	var debugs = {};
+	var debugEnviron;
+	exports.debuglog = function(set) {
+	  if (isUndefined(debugEnviron))
+	    debugEnviron = process.env.NODE_DEBUG || '';
+	  set = set.toUpperCase();
+	  if (!debugs[set]) {
+	    if (new RegExp('\\b' + set + '\\b', 'i').test(debugEnviron)) {
+	      var pid = process.pid;
+	      debugs[set] = function() {
+	        var msg = exports.format.apply(exports, arguments);
+	        console.error('%s %d: %s', set, pid, msg);
+	      };
+	    } else {
+	      debugs[set] = function() {};
+	    }
+	  }
+	  return debugs[set];
+	};
+
+
+	/**
+	 * Echos the value of a value. Trys to print the value out
+	 * in the best way possible given the different types.
+	 *
+	 * @param {Object} obj The object to print out.
+	 * @param {Object} opts Optional options object that alters the output.
+	 */
+	/* legacy: obj, showHidden, depth, colors*/
+	function inspect(obj, opts) {
+	  // default options
+	  var ctx = {
+	    seen: [],
+	    stylize: stylizeNoColor
+	  };
+	  // legacy...
+	  if (arguments.length >= 3) ctx.depth = arguments[2];
+	  if (arguments.length >= 4) ctx.colors = arguments[3];
+	  if (isBoolean(opts)) {
+	    // legacy...
+	    ctx.showHidden = opts;
+	  } else if (opts) {
+	    // got an "options" object
+	    exports._extend(ctx, opts);
+	  }
+	  // set default options
+	  if (isUndefined(ctx.showHidden)) ctx.showHidden = false;
+	  if (isUndefined(ctx.depth)) ctx.depth = 2;
+	  if (isUndefined(ctx.colors)) ctx.colors = false;
+	  if (isUndefined(ctx.customInspect)) ctx.customInspect = true;
+	  if (ctx.colors) ctx.stylize = stylizeWithColor;
+	  return formatValue(ctx, obj, ctx.depth);
+	}
+	exports.inspect = inspect;
+
+
+	// http://en.wikipedia.org/wiki/ANSI_escape_code#graphics
+	inspect.colors = {
+	  'bold' : [1, 22],
+	  'italic' : [3, 23],
+	  'underline' : [4, 24],
+	  'inverse' : [7, 27],
+	  'white' : [37, 39],
+	  'grey' : [90, 39],
+	  'black' : [30, 39],
+	  'blue' : [34, 39],
+	  'cyan' : [36, 39],
+	  'green' : [32, 39],
+	  'magenta' : [35, 39],
+	  'red' : [31, 39],
+	  'yellow' : [33, 39]
+	};
+
+	// Don't use 'blue' not visible on cmd.exe
+	inspect.styles = {
+	  'special': 'cyan',
+	  'number': 'yellow',
+	  'boolean': 'yellow',
+	  'undefined': 'grey',
+	  'null': 'bold',
+	  'string': 'green',
+	  'date': 'magenta',
+	  // "name": intentionally not styling
+	  'regexp': 'red'
+	};
+
+
+	function stylizeWithColor(str, styleType) {
+	  var style = inspect.styles[styleType];
+
+	  if (style) {
+	    return '\u001b[' + inspect.colors[style][0] + 'm' + str +
+	           '\u001b[' + inspect.colors[style][1] + 'm';
+	  } else {
+	    return str;
+	  }
+	}
+
+
+	function stylizeNoColor(str, styleType) {
+	  return str;
+	}
+
+
+	function arrayToHash(array) {
+	  var hash = {};
+
+	  array.forEach(function(val, idx) {
+	    hash[val] = true;
+	  });
+
+	  return hash;
+	}
+
+
+	function formatValue(ctx, value, recurseTimes) {
+	  // Provide a hook for user-specified inspect functions.
+	  // Check that value is an object with an inspect function on it
+	  if (ctx.customInspect &&
+	      value &&
+	      isFunction(value.inspect) &&
+	      // Filter out the util module, it's inspect function is special
+	      value.inspect !== exports.inspect &&
+	      // Also filter out any prototype objects using the circular check.
+	      !(value.constructor && value.constructor.prototype === value)) {
+	    var ret = value.inspect(recurseTimes, ctx);
+	    if (!isString(ret)) {
+	      ret = formatValue(ctx, ret, recurseTimes);
+	    }
+	    return ret;
+	  }
+
+	  // Primitive types cannot have properties
+	  var primitive = formatPrimitive(ctx, value);
+	  if (primitive) {
+	    return primitive;
+	  }
+
+	  // Look up the keys of the object.
+	  var keys = Object.keys(value);
+	  var visibleKeys = arrayToHash(keys);
+
+	  if (ctx.showHidden) {
+	    keys = Object.getOwnPropertyNames(value);
+	  }
+
+	  // IE doesn't make error fields non-enumerable
+	  // http://msdn.microsoft.com/en-us/library/ie/dww52sbt(v=vs.94).aspx
+	  if (isError(value)
+	      && (keys.indexOf('message') >= 0 || keys.indexOf('description') >= 0)) {
+	    return formatError(value);
+	  }
+
+	  // Some type of object without properties can be shortcutted.
+	  if (keys.length === 0) {
+	    if (isFunction(value)) {
+	      var name = value.name ? ': ' + value.name : '';
+	      return ctx.stylize('[Function' + name + ']', 'special');
+	    }
+	    if (isRegExp(value)) {
+	      return ctx.stylize(RegExp.prototype.toString.call(value), 'regexp');
+	    }
+	    if (isDate(value)) {
+	      return ctx.stylize(Date.prototype.toString.call(value), 'date');
+	    }
+	    if (isError(value)) {
+	      return formatError(value);
+	    }
+	  }
+
+	  var base = '', array = false, braces = ['{', '}'];
+
+	  // Make Array say that they are Array
+	  if (isArray(value)) {
+	    array = true;
+	    braces = ['[', ']'];
+	  }
+
+	  // Make functions say that they are functions
+	  if (isFunction(value)) {
+	    var n = value.name ? ': ' + value.name : '';
+	    base = ' [Function' + n + ']';
+	  }
+
+	  // Make RegExps say that they are RegExps
+	  if (isRegExp(value)) {
+	    base = ' ' + RegExp.prototype.toString.call(value);
+	  }
+
+	  // Make dates with properties first say the date
+	  if (isDate(value)) {
+	    base = ' ' + Date.prototype.toUTCString.call(value);
+	  }
+
+	  // Make error with message first say the error
+	  if (isError(value)) {
+	    base = ' ' + formatError(value);
+	  }
+
+	  if (keys.length === 0 && (!array || value.length == 0)) {
+	    return braces[0] + base + braces[1];
+	  }
+
+	  if (recurseTimes < 0) {
+	    if (isRegExp(value)) {
+	      return ctx.stylize(RegExp.prototype.toString.call(value), 'regexp');
+	    } else {
+	      return ctx.stylize('[Object]', 'special');
+	    }
+	  }
+
+	  ctx.seen.push(value);
+
+	  var output;
+	  if (array) {
+	    output = formatArray(ctx, value, recurseTimes, visibleKeys, keys);
+	  } else {
+	    output = keys.map(function(key) {
+	      return formatProperty(ctx, value, recurseTimes, visibleKeys, key, array);
+	    });
+	  }
+
+	  ctx.seen.pop();
+
+	  return reduceToSingleString(output, base, braces);
+	}
+
+
+	function formatPrimitive(ctx, value) {
+	  if (isUndefined(value))
+	    return ctx.stylize('undefined', 'undefined');
+	  if (isString(value)) {
+	    var simple = '\'' + JSON.stringify(value).replace(/^"|"$/g, '')
+	                                             .replace(/'/g, "\\'")
+	                                             .replace(/\\"/g, '"') + '\'';
+	    return ctx.stylize(simple, 'string');
+	  }
+	  if (isNumber(value))
+	    return ctx.stylize('' + value, 'number');
+	  if (isBoolean(value))
+	    return ctx.stylize('' + value, 'boolean');
+	  // For some reason typeof null is "object", so special case here.
+	  if (isNull(value))
+	    return ctx.stylize('null', 'null');
+	}
+
+
+	function formatError(value) {
+	  return '[' + Error.prototype.toString.call(value) + ']';
+	}
+
+
+	function formatArray(ctx, value, recurseTimes, visibleKeys, keys) {
+	  var output = [];
+	  for (var i = 0, l = value.length; i < l; ++i) {
+	    if (hasOwnProperty(value, String(i))) {
+	      output.push(formatProperty(ctx, value, recurseTimes, visibleKeys,
+	          String(i), true));
+	    } else {
+	      output.push('');
+	    }
+	  }
+	  keys.forEach(function(key) {
+	    if (!key.match(/^\d+$/)) {
+	      output.push(formatProperty(ctx, value, recurseTimes, visibleKeys,
+	          key, true));
+	    }
+	  });
+	  return output;
+	}
+
+
+	function formatProperty(ctx, value, recurseTimes, visibleKeys, key, array) {
+	  var name, str, desc;
+	  desc = Object.getOwnPropertyDescriptor(value, key) || { value: value[key] };
+	  if (desc.get) {
+	    if (desc.set) {
+	      str = ctx.stylize('[Getter/Setter]', 'special');
+	    } else {
+	      str = ctx.stylize('[Getter]', 'special');
+	    }
+	  } else {
+	    if (desc.set) {
+	      str = ctx.stylize('[Setter]', 'special');
+	    }
+	  }
+	  if (!hasOwnProperty(visibleKeys, key)) {
+	    name = '[' + key + ']';
+	  }
+	  if (!str) {
+	    if (ctx.seen.indexOf(desc.value) < 0) {
+	      if (isNull(recurseTimes)) {
+	        str = formatValue(ctx, desc.value, null);
+	      } else {
+	        str = formatValue(ctx, desc.value, recurseTimes - 1);
+	      }
+	      if (str.indexOf('\n') > -1) {
+	        if (array) {
+	          str = str.split('\n').map(function(line) {
+	            return '  ' + line;
+	          }).join('\n').substr(2);
+	        } else {
+	          str = '\n' + str.split('\n').map(function(line) {
+	            return '   ' + line;
+	          }).join('\n');
+	        }
+	      }
+	    } else {
+	      str = ctx.stylize('[Circular]', 'special');
+	    }
+	  }
+	  if (isUndefined(name)) {
+	    if (array && key.match(/^\d+$/)) {
+	      return str;
+	    }
+	    name = JSON.stringify('' + key);
+	    if (name.match(/^"([a-zA-Z_][a-zA-Z_0-9]*)"$/)) {
+	      name = name.substr(1, name.length - 2);
+	      name = ctx.stylize(name, 'name');
+	    } else {
+	      name = name.replace(/'/g, "\\'")
+	                 .replace(/\\"/g, '"')
+	                 .replace(/(^"|"$)/g, "'");
+	      name = ctx.stylize(name, 'string');
+	    }
+	  }
+
+	  return name + ': ' + str;
+	}
+
+
+	function reduceToSingleString(output, base, braces) {
+	  var numLinesEst = 0;
+	  var length = output.reduce(function(prev, cur) {
+	    numLinesEst++;
+	    if (cur.indexOf('\n') >= 0) numLinesEst++;
+	    return prev + cur.replace(/\u001b\[\d\d?m/g, '').length + 1;
+	  }, 0);
+
+	  if (length > 60) {
+	    return braces[0] +
+	           (base === '' ? '' : base + '\n ') +
+	           ' ' +
+	           output.join(',\n  ') +
+	           ' ' +
+	           braces[1];
+	  }
+
+	  return braces[0] + base + ' ' + output.join(', ') + ' ' + braces[1];
+	}
+
+
+	// NOTE: These type checking functions intentionally don't use `instanceof`
+	// because it is fragile and can be easily faked with `Object.create()`.
+	function isArray(ar) {
+	  return Array.isArray(ar);
+	}
+	exports.isArray = isArray;
+
+	function isBoolean(arg) {
+	  return typeof arg === 'boolean';
+	}
+	exports.isBoolean = isBoolean;
+
+	function isNull(arg) {
+	  return arg === null;
+	}
+	exports.isNull = isNull;
+
+	function isNullOrUndefined(arg) {
+	  return arg == null;
+	}
+	exports.isNullOrUndefined = isNullOrUndefined;
+
+	function isNumber(arg) {
+	  return typeof arg === 'number';
+	}
+	exports.isNumber = isNumber;
+
+	function isString(arg) {
+	  return typeof arg === 'string';
+	}
+	exports.isString = isString;
+
+	function isSymbol(arg) {
+	  return typeof arg === 'symbol';
+	}
+	exports.isSymbol = isSymbol;
+
+	function isUndefined(arg) {
+	  return arg === void 0;
+	}
+	exports.isUndefined = isUndefined;
+
+	function isRegExp(re) {
+	  return isObject(re) && objectToString(re) === '[object RegExp]';
+	}
+	exports.isRegExp = isRegExp;
+
+	function isObject(arg) {
+	  return typeof arg === 'object' && arg !== null;
+	}
+	exports.isObject = isObject;
+
+	function isDate(d) {
+	  return isObject(d) && objectToString(d) === '[object Date]';
+	}
+	exports.isDate = isDate;
+
+	function isError(e) {
+	  return isObject(e) &&
+	      (objectToString(e) === '[object Error]' || e instanceof Error);
+	}
+	exports.isError = isError;
+
+	function isFunction(arg) {
+	  return typeof arg === 'function';
+	}
+	exports.isFunction = isFunction;
+
+	function isPrimitive(arg) {
+	  return arg === null ||
+	         typeof arg === 'boolean' ||
+	         typeof arg === 'number' ||
+	         typeof arg === 'string' ||
+	         typeof arg === 'symbol' ||  // ES6 symbol
+	         typeof arg === 'undefined';
+	}
+	exports.isPrimitive = isPrimitive;
+
+	exports.isBuffer = __webpack_require__(6);
+
+	function objectToString(o) {
+	  return Object.prototype.toString.call(o);
+	}
+
+
+	function pad(n) {
+	  return n < 10 ? '0' + n.toString(10) : n.toString(10);
+	}
+
+
+	var months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep',
+	              'Oct', 'Nov', 'Dec'];
+
+	// 26 Feb 16:19:34
+	function timestamp() {
+	  var d = new Date();
+	  var time = [pad(d.getHours()),
+	              pad(d.getMinutes()),
+	              pad(d.getSeconds())].join(':');
+	  return [d.getDate(), months[d.getMonth()], time].join(' ');
+	}
+
+
+	// log is just a thin wrapper to console.log that prepends a timestamp
+	exports.log = function() {
+	  console.log('%s - %s', timestamp(), exports.format.apply(exports, arguments));
+	};
+
+
+	/**
+	 * Inherit the prototype methods from one constructor into another.
+	 *
+	 * The Function.prototype.inherits from lang.js rewritten as a standalone
+	 * function (not on Function.prototype). NOTE: If this file is to be loaded
+	 * during bootstrapping this function needs to be rewritten using some native
+	 * functions as prototype setup using normal JavaScript does not work as
+	 * expected during bootstrapping (see mirror.js in r114903).
+	 *
+	 * @param {function} ctor Constructor function which needs to inherit the
+	 *     prototype.
+	 * @param {function} superCtor Constructor function to inherit prototype from.
+	 */
+	exports.inherits = __webpack_require__(7);
+
+	exports._extend = function(origin, add) {
+	  // Don't do anything if add isn't an object
+	  if (!add || !isObject(add)) return origin;
+
+	  var keys = Object.keys(add);
+	  var i = keys.length;
+	  while (i--) {
+	    origin[keys[i]] = add[keys[i]];
+	  }
+	  return origin;
+	};
+
+	function hasOwnProperty(obj, prop) {
+	  return Object.prototype.hasOwnProperty.call(obj, prop);
+	}
+
+	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }()), __webpack_require__(5)))
+
+/***/ },
+/* 5 */
+/***/ function(module, exports) {
+
+	// shim for using process in browser
+
+	var process = module.exports = {};
+	var queue = [];
+	var draining = false;
+	var currentQueue;
+	var queueIndex = -1;
+
+	function cleanUpNextTick() {
+	    draining = false;
+	    if (currentQueue.length) {
+	        queue = currentQueue.concat(queue);
+	    } else {
+	        queueIndex = -1;
+	    }
+	    if (queue.length) {
+	        drainQueue();
+	    }
+	}
+
+	function drainQueue() {
+	    if (draining) {
+	        return;
+	    }
+	    var timeout = setTimeout(cleanUpNextTick);
+	    draining = true;
+
+	    var len = queue.length;
+	    while(len) {
+	        currentQueue = queue;
+	        queue = [];
+	        while (++queueIndex < len) {
+	            if (currentQueue) {
+	                currentQueue[queueIndex].run();
+	            }
+	        }
+	        queueIndex = -1;
+	        len = queue.length;
+	    }
+	    currentQueue = null;
+	    draining = false;
+	    clearTimeout(timeout);
+	}
+
+	process.nextTick = function (fun) {
+	    var args = new Array(arguments.length - 1);
+	    if (arguments.length > 1) {
+	        for (var i = 1; i < arguments.length; i++) {
+	            args[i - 1] = arguments[i];
+	        }
+	    }
+	    queue.push(new Item(fun, args));
+	    if (queue.length === 1 && !draining) {
+	        setTimeout(drainQueue, 0);
+	    }
+	};
+
+	// v8 likes predictible objects
+	function Item(fun, array) {
+	    this.fun = fun;
+	    this.array = array;
+	}
+	Item.prototype.run = function () {
+	    this.fun.apply(null, this.array);
+	};
+	process.title = 'browser';
+	process.browser = true;
+	process.env = {};
+	process.argv = [];
+	process.version = ''; // empty string to avoid regexp issues
+	process.versions = {};
+
+	function noop() {}
+
+	process.on = noop;
+	process.addListener = noop;
+	process.once = noop;
+	process.off = noop;
+	process.removeListener = noop;
+	process.removeAllListeners = noop;
+	process.emit = noop;
+
+	process.binding = function (name) {
+	    throw new Error('process.binding is not supported');
+	};
+
+	process.cwd = function () { return '/' };
+	process.chdir = function (dir) {
+	    throw new Error('process.chdir is not supported');
+	};
+	process.umask = function() { return 0; };
+
+
+/***/ },
+/* 6 */
+/***/ function(module, exports) {
+
+	module.exports = function isBuffer(arg) {
+	  return arg && typeof arg === 'object'
+	    && typeof arg.copy === 'function'
+	    && typeof arg.fill === 'function'
+	    && typeof arg.readUInt8 === 'function';
+	}
+
+/***/ },
+/* 7 */
+/***/ function(module, exports) {
+
+	if (typeof Object.create === 'function') {
+	  // implementation from standard node.js 'util' module
+	  module.exports = function inherits(ctor, superCtor) {
+	    ctor.super_ = superCtor
+	    ctor.prototype = Object.create(superCtor.prototype, {
+	      constructor: {
+	        value: ctor,
+	        enumerable: false,
+	        writable: true,
+	        configurable: true
+	      }
+	    });
+	  };
+	} else {
+	  // old school shim for old browsers
+	  module.exports = function inherits(ctor, superCtor) {
+	    ctor.super_ = superCtor
+	    var TempCtor = function () {}
+	    TempCtor.prototype = superCtor.prototype
+	    ctor.prototype = new TempCtor()
+	    ctor.prototype.constructor = ctor
+	  }
+	}
+
+
+/***/ },
+/* 8 */
+/***/ function(module, exports) {
+
+	
+	/**
+	 * Some constants to use accross draw-svg files for the most part
+	 * @since 2015-Nov-16
+	 */
+	module.exports = {
+	  GRAPH_RING_RADIUS_MULTIPLIER : 2.5,
+	  GRAPH_NODE_RADIUS_MULTIPLIER: 16
+	};
+
+
+/***/ },
+/* 9 */
+/***/ function(module, exports, __webpack_require__) {
+
+	
+	var assert = __webpack_require__(3);
+	var drawNode = __webpack_require__(10);
+
+	/**
+	 * Function that calls drawNode and draws all nodes
+	 *
+	 * @param {!Array} nodesArray ann array of nodeTokens
+	 * @param {!Object} configuration receives an object with svg reference and radius of circle
+	 *
+	 * @throws {AssertionError} if not a valid node list array
+	 *
+	 * @author Joel Quiles
+	 * @since 2015-Nov-16
+	 */
+	module.exports = function(nodesArray, configuration) {
+	  assert(Array.isArray(nodesArray), 'invalid node list array');
+
+	  nodesArray.forEach(function(token, index, array){
+	    drawNode(token, configuration);
+	  });
+	}
+
+
+/***/ },
 /* 10 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/**
+	 * Small library that creates a replica of the OpsCenter ring view given a list of cluster nodes
+	 * @author Joel Quiles
+	 * @since 2015-Nov-16
+	 */
+
+	// ------------------------------ NPM IMPORTS ----------------------------------
+
+	var assert = __webpack_require__(3);         // node assertion library- in the browser!
+	var d3 = __webpack_require__(2);                 // Used to create svg graphs
+	var randomRGB = __webpack_require__(11);         // Generate random colors for the node
+
+	// ------------------------------ lib imports ----------------------------------
+
+	var getRatioOfToken = __webpack_require__(12);
+
+	// ----------------------------- file globals ----------------------------------
+
+	var UNIT_CIRCLE_RADIUS = 1; // max radius value in graph circle
+	// To modify size of ring or nodes
+	var GRAPH_RING_RADIUS_MULTIPLIER = __webpack_require__(8).GRAPH_RING_RADIUS_MULTIPLIER;
+	var GRAPH_NODE_RADIUS_MULTIPLIER = __webpack_require__(8).GRAPH_NODE_RADIUS_MULTIPLIER;
+
+	// ------------------------------ Functions ------------------------------------
+
+
+
+	/**
+	 * Draw a node, given a token/id. It needs to find the ratio of the given
+	 * token from the max allowed token, in  other to find the place in the Ring,
+	 * using trigonometry.
+	 *
+	 * @param {!Array} nodeArray list of strings with node tokens
+	 * @param {!Object} configuration which includes a reference to svg element and radius of circle
+	 *
+	 * Might throw this error type:
+	 * @throws AssertionError if nodeToken is not a string, and there is no svg or radius in its configuration
+	 *
+	 * @author Joel Quiles
+	 * @since 2015-Nov-16
+	 */
+	module.exports = function (nodeToken, configuration) {
+
+	  // validate token
+	  assert(nodeToken && typeof nodeToken === 'string', 'invalid nodeToken provided in draw-node');
+	  assert(!isNaN(parseInt(nodeToken, 10)), 'nodeToken provided is not a number in draw-node');
+	  // validate configuration
+	  assert(!!configuration.svg && !!configuration.radius, 'invalid configuration provided in draw-node');
+
+	  var radius = configuration.radius;
+	  var svg = configuration.svg;
+
+	  // Trivia night: the plural form of radius can be either radii or radiuses
+	  var nodeTokenArcRadius = radius / GRAPH_RING_RADIUS_MULTIPLIER;
+	  var nodeRadius = radius / GRAPH_NODE_RADIUS_MULTIPLIER;         // 18 was a magic number, playing with a ratio that made sense
+
+	  // Generate a random rgb color. Then force 0.3 transparency to see overlap of nodes, and change rgb to rgba format
+	  var randomColor = randomRGB({format: 'rgb'}).replace(new RegExp(/[)]$/), ', 0.3)').replace('rgb', 'rgba');
+
+	  // insert node into svg, positioning at ring arc.
+	  svg.append("circle")        // nodes are visualized as circles in the ring view
+	    .attr("class", "node"+nodeToken)
+	    .attr("r", nodeRadius)    // Set radius of the node
+	    // move node's center to the ring's arc radius
+	    .attr("transform", "translate(0," + -nodeTokenArcRadius + ")")
+	    .style("fill", randomColor);
+
+	  // Current position of node (an arc around the ring), with bigger arc when
+	  // bigger ratio to the max allowed token
+	  var nodeTokenPosition = d3.svg.arc()
+	    .startAngle(0)
+	    .endAngle(0);
+
+	  var ratio = getRatioOfToken(nodeToken); // ratio between the provided node token value and max token
+
+	  if(ratio === 0) { // unable to divide by 0, we know the ratio by now :)
+	    ratio = 1;
+	  }
+
+	  // position of circle as radians
+	  var positionInCircle = 2 * Math.PI / ratio;
+
+	  // create a function that uses the end angle 9 (in radians) and the position of element in circle
+	  var interpolateNodePosition = d3.interpolate(nodeTokenPosition.endAngle()(), positionInCircle);
+
+	  // get x and y values of coordinates, using start and end angles
+	  var x = Math.cos(interpolateNodePosition(UNIT_CIRCLE_RADIUS) - nodeTokenPosition.startAngle()()); // x coordinate of angle, using cosine to get this value
+	  var y = Math.sin(interpolateNodePosition(UNIT_CIRCLE_RADIUS) - nodeTokenPosition.startAngle()()); // y coordinate of angle, using sine to get this value
+
+	  // translate node along arc to its position
+	  d3.select(".node"+nodeToken)
+	    .attr("transform", "translate(" + nodeTokenArcRadius * y + "," + -nodeTokenArcRadius * x + ")");
+
+	  // previously only logged one token
+	  // document.querySelector(".node"+nodeToken).addEventListener('click', function(){
+	  //   console.log('token: '+ nodeToken);
+	  // });
+	}
+
+
+/***/ },
+/* 11 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// randomColor by David Merfield under the MIT license
@@ -11610,223 +11476,459 @@
 	}));
 
 /***/ },
-/* 11 */,
-/* 12 */,
-/* 13 */,
-/* 14 */,
-/* 15 */,
-/* 16 */,
-/* 17 */
+/* 12 */
+/***/ function(module, exports, __webpack_require__) {
+
+	
+	// ------------------------------ imports --------------------------------------
+
+	var BigNumber = __webpack_require__(13).n; // to work with BIG numbers in javascript :)
+	// Supported BigNumber methods: add/plus, minus/subtract,
+	// multiply/mult, divide/div, power/pow, mod,
+	// equals, lt, lte, gt, gte, isZero, abs
+	// Sample : var big = BigNumber(5).plus(97).minus(53).plus(434).multiply(5435423).add(321453).multiply(21).div(2).pow(2);
+	// Sample out: 760056543044267246001 // when converting to string
+
+	var assert = __webpack_require__(3);
+
+	// ------------------------------ globals -------------------------------------
+
+	var MAX_TOKEN = BigNumber(2).pow(127)+''; // 2^127 is biggest token value
+
+	// 2^127 = 170141183460469231731687303715884105728
+	// 2^ 126 = 85070591730234615865843651857942052864
+
+
+	/**
+	 * The maximum token id allowed is 2^127. There's one computer science challenge:
+	 * javascript's max number is 2^53-1
+	 *
+	 * From ECMA Section 8.5 - Numbers:
+	 * > Note that all the positive and negative integers whose magnitude is no
+	 * > greater than 2^53 are representable in the Number type...
+	 *
+	 * ES6 defines it as Number.MAX_SAFE_INTEGER.
+	 *
+	 * @param {!String} token a token to calculate ratio of, compared to the MAX_TOKEN value
+	 * @returns {Number} ratio of token, as js number
+	 *
+	 *
+	 * @author Joel Quiles
+	 * @since 2015-Nov-16
+	 */
+	module.exports = function (token) {
+	  assert(typeof token === 'string' && !isNaN(token), 'token is not a string parseable to number, in token-ratio');
+
+	  if(token === '0' || token === '') {                     // I WILL NOT DIVIDE BY 0
+	    return 0;
+	  }
+
+	  if(BigNumber(token).gt(MAX_TOKEN)) {
+	    console.warn('You have passed a higher value than 2^127. This is  not supported. Returning 0');
+	    return 0;
+	  }
+
+	  // tried another algorithm, using log2 and make ratio out of 127, but it was even less accurate
+	  var inverseRatio = BigNumber(MAX_TOKEN).divide(token);
+
+	  return parseInt(inverseRatio, 10);
+	}
+
+
+/***/ },
+/* 13 */
+/***/ function(module, exports, __webpack_require__) {
+
+	module.exports = __webpack_require__(14);
+
+
+/***/ },
+/* 14 */
 /***/ function(module, exports) {
 
-	
-	/**
-	 * Some constants to use accross draw-svg files for the most part
-	 * @since 2015-Nov-16
+	/*!
+	 * n.js -> Arithmetic operations on big integers
+	 * Pure javascript implementation, no external libraries needed
+	 * Copyright(c) 2012-2014 Alex Bardas <alex.bardas@gmail.com>
+	 * MIT Licensed
+	 * It supports the following operations:
+	 *      addition, subtraction, multiplication, division, power, absolute value
+	 * It works with both positive and negative integers
 	 */
-	module.exports = {
-	  GRAPH_RING_RADIUS_MULTIPLIER : 2.5,
-	  GRAPH_NODE_RADIUS_MULTIPLIER: 16
-	};
+
+	;(function(exports, undefined) {
+
+	    var version = "0.3.1";
+
+	    // Helper function which tests if a given character is a digit
+	    var test_digit = function(digit) {
+	        return (/^\d$/.test(digit));
+	    };
+	    // Helper function which returns the absolute value of a given number
+	    var abs = function(n) {
+	        // if the function is called with no arguments then return
+	        if (typeof n === 'undefined')
+	            return;
+	        var x = new BigNumber(n, true);
+	        x.sign = 1;
+	        return x;
+	    };
+
+	    exports.n = function (number) {
+	        return new BigNumber(number);
+	    };
+
+	    var errors = {
+	        "invalid": "Invalid Number",
+	        "division by zero": "Invalid Number - Division By Zero"
+	    };
+	    // constructor function which creates a new BigNumber object
+	    // from an integer, a string, an array or other BigNumber object
+	    // if new_copy is true, the function returns a new object instance
+	    var BigNumber = function(x, new_copy) {
+	        var i;
+	        this.number = [];
+	        this.sign = 1;
+	        this.rest = 0;
+
+	        if (!x) {
+	            this.number = [0];
+	            return;
+	        }
+
+	        if (x.constructor === BigNumber) {
+	            return new_copy ? new BigNumber(x.toString()) : x;
+	       }
+
+	        // x can be an array or object
+	        // eg array: [3,2,1], ['+',3,2,1], ['-',3,2,1]
+	        // eg string: '321', '+321', -321'
+	        // every character except the first must be a digit
+
+	        if (typeof x == 'object') {
+	            if (x.length && x[0] === '-' || x[0] === '+') {
+	                this.sign = x[0] === '+' ? 1 : -1;
+	                x.shift(0);
+	            }
+	            for (i=x.length-1; i>=0; --i) {
+	                if (!this.add_digit(x[i], x))
+	                    return;
+	            }
+	        }
+
+	        else {
+	            x = x.toString();
+	            if (x.charAt(0) === '-' || x.charAt(0) === '+') {
+	                this.sign = x.charAt(0) === '+' ? 1 : -1;
+	                x = x.substring(1);
+	            }
+
+	            for (i=x.length-1; i>=0; --i) {
+	                if (!this.add_digit(parseInt(x.charAt(i), 10), x)) {
+	                    return;
+	                }
+	            }
+	        }
+	    };
+
+	    BigNumber.prototype.add_digit = function(digit, x) {
+	        if (test_digit(digit))
+	            this.number.push(digit);
+	        else {
+	            //throw (x || digit) + " is not a valid number";
+	            this.number = errors['invalid'];
+	            return false;
+	        }
+
+	        return this;
+	    };
+
+	    // returns:
+	    //      0 if this.number === n
+	    //      -1 if this.number < n
+	    //      1 if this.number > n
+	    BigNumber.prototype._compare = function(n) {
+	        // if the function is called with no arguments then return 0
+	        if (typeof n === 'undefined')
+	            return 0;
+
+	        var x = new BigNumber(n);
+	        var i;
+
+	        // If the numbers have different signs, then the positive
+	        // number is greater
+	        if (this.sign !== x.sign)
+	            return this.sign;
+
+	        // Else, check the length
+	        if (this.number.length > x.number.length)
+	            return this.sign;
+	        else if (this.number.length < x.number.length)
+	            return this.sign*(-1);
+
+	        // If they have similar length, compare the numbers
+	        // digit by digit
+	        for (i = this.number.length-1; i >= 0; --i) {
+	            if (this.number[i] > x.number[i])
+	                return this.sign;
+	            else if (this.number[i] < x.number[i])
+	                return this.sign * (-1);
+	        }
+
+	        return 0;
+	    };
+
+	    // greater than
+	    BigNumber.prototype.gt = function(n) {
+	        return this._compare(n) > 0;
+	    };
+
+	    // greater than or equal
+	    BigNumber.prototype.gte = function(n) {
+	        return this._compare(n) >= 0;
+	    };
+
+	    // this.number equals n
+	    BigNumber.prototype.equals = function(n) {
+	        return this._compare(n) === 0;
+	    };
+
+	    // less than or equal
+	    BigNumber.prototype.lte = function(n) {
+	        return this._compare(n) <= 0;
+	    };
+
+	    // less than
+	    BigNumber.prototype.lt = function(n) {
+	        return this._compare(n) < 0;
+	    };
+
+	    // this.number + n
+	    BigNumber.prototype.add = function(n) {
+	        // if the function is called with no arguments then return
+	        if (typeof n === 'undefined')
+	            return this;
+	        var x = new BigNumber(n);
+
+	        if (this.sign !== x.sign) {
+	            if (this.sign > 0) {
+	                x.sign = 1;
+	                return this.minus(x);
+	            }
+	            else {
+	                this.sign = 1;
+	                return x.minus(this);
+	            }
+	        }
+
+	        this.number = BigNumber._add(this, x);
+	        return this;
+	    };
+
+	    // this.number - n
+	    BigNumber.prototype.subtract = function(n) {
+	        // if the function is called with no arguments then return
+	        if (typeof n === 'undefined')
+	            return this;
+	        var x = new BigNumber(n);
+
+	        if (this.sign !== x.sign) {
+	            this.number = BigNumber._add(this, x);
+	            return this;
+	        }
+
+	        // if current number is lesser than x, final result will be negative
+	        this.sign = (this.lt(x)) ? -1 : 1;
+	        this.number = (abs(this).lt(abs(x))) ?
+	            BigNumber._subtract(x, this) :
+	            BigNumber._subtract(this, x);
+
+	        return this;
+	    };
+
+	    // adds two positive BigNumbers
+	    BigNumber._add = function(a, b) {
+	        var i;
+	        var remainder = 0;
+	        var length = Math.max(a.number.length, b.number.length);
+
+	        for (i = 0; i < length || remainder > 0; ++i) {
+	            a.number[i] = (remainder += (a.number[i] || 0) + (b.number[i] || 0)) % 10;
+	            remainder = Math.floor(remainder/10);
+	        }
+
+	        return a.number;
+	    };
+
+	    // decreases b from a
+	    // a and b are 2 positive BigNumbers and a > b
+	    BigNumber._subtract = function(a, b) {
+	        var i;
+	        var remainder = 0;
+	        var length = a.number.length;
+
+	        for (i = 0; i < length; ++i) {
+	            a.number[i] -= (b.number[i] || 0) + remainder;
+	            a.number[i] += (remainder = (a.number[i] < 0) ? 1 : 0) * 10;
+	        }
+	        // let's optimize a bit, and count the zeroes which need to be removed
+	        i = 0;
+	        length = a.number.length - 1;
+	        while (a.number[length - i] === 0 && length - i > 0)
+	            i++;
+	        if (i > 0)
+	            a.number.splice(-i);
+	        return a.number;
+	    };
+
+	    // this.number * n
+	    BigNumber.prototype.multiply = function(n) {
+	        // if the function is called with no arguments then return
+	        if (typeof n === 'undefined')
+	            return this;
+	        var x = new BigNumber(n);
+	        var i;
+	        var j;
+	        var remainder = 0;
+	        var result = [];
+	        // test if one of the numbers is zero
+	        if (this.isZero() || x.isZero()) {
+	            return new BigNumber(0);
+	        }
+
+	        this.sign *= x.sign;
+
+	        // multiply the numbers
+	        for (i = 0; i < this.number.length; ++i) {
+	            for (remainder = 0, j = 0; j < x.number.length || remainder > 0; ++j) {
+	                result[i + j] = (remainder += (result[i + j] || 0) + this.number[i] * (x.number[j] || 0)) % 10;
+	                remainder = Math.floor(remainder / 10);
+	            }
+	        }
+
+	        this.number = result;
+	        return this;
+	    };
+
+	    // this.number / n
+	    BigNumber.prototype.divide = function(n) {
+	        // if the function is called with no arguments then return
+	        if (typeof n === 'undefined') {
+	            return this;
+	        }
+	        var x = new BigNumber(n);
+	        var i;
+	        var j;
+	        var length;
+	        var remainder = 0;
+	        var result = [];
+	        var rest = new BigNumber();
+	        // test if one of the numbers is zero
+	        if (x.isZero()) {
+	            this.number = errors['division by zero'];
+	            return this;
+	        }
+	        else if (this.isZero()) {
+	            return new BigNumber(0);
+	        }
+	        this.sign *= x.sign;
+	        x.sign = 1;
+	        // every number divided by 1 is the same number, so don't waste time dividing them
+	        if (x.number.length === 1 && x.number[0] === 1)
+	            return this;
+
+	        for (i = this.number.length - 1; i >= 0; i--) {
+	            rest.multiply(10);
+	            rest.number[0] = this.number[i];
+	            result[i] = 0;
+	            while (x.lte(rest)) {
+	                result[i]++;
+	                rest.subtract(x);
+	            }
+	        }
+
+	        i = 0;
+	        length = result.length-1;
+	        while (result[length - i] === 0 && length - i > 0)
+	            i++;
+	        if (i > 0)
+	            result.splice(-i);
+
+	        // returns the rest as a string
+	        this.rest = rest;
+	        this.number = result;
+	        return this;
+	    };
+
+	    // this.number % n
+	    BigNumber.prototype.mod = function(n) {
+	        return this.divide(n).rest;
+	    };
+
+	    // n must be a positive number
+	    BigNumber.prototype.power = function(n) {
+	        if (typeof n === 'undefined')
+	            return;
+	        var num;
+	        // Convert the argument to a number
+	        n = +n;
+	        if (n === 0)
+	            return new BigNumber(1);
+	        if (n === 1)
+	            return this;
+
+	        num = new BigNumber(this, true);
+
+	        this.number = [1];
+	        while (n > 0) {
+	            if (n % 2 === 1) {
+	                this.multiply(num);
+	                n--;
+	                continue;
+	            }
+	            num.multiply(num);
+	            n = Math.floor(n / 2);
+	        }
+
+	        return this;
+	    };
+
+	    // |this.number|
+	    BigNumber.prototype.abs = function() {
+	        this.sign = 1;
+	        return this;
+	    };
+
+	    // is this.number == 0 ?
+	    BigNumber.prototype.isZero = function() {
+	        return (this.number.length === 1 && this.number[0] === 0);
+	    };
+
+	    // this.number.toString()
+	    BigNumber.prototype.toString = function() {
+	        var i;
+	        var x = '';
+	        if (typeof this.number === "string")
+	            return this.number;
+
+	        for (i = this.number.length-1; i >= 0; --i)
+	            x += this.number[i];
+
+	        return (this.sign > 0) ? x : ('-' + x);
+	    };
+
+	    // Use shorcuts for functions names
+	    BigNumber.prototype.plus = BigNumber.prototype.add;
+	    BigNumber.prototype.minus = BigNumber.prototype.subtract;
+	    BigNumber.prototype.div = BigNumber.prototype.divide;
+	    BigNumber.prototype.mult = BigNumber.prototype.multiply;
+	    BigNumber.prototype.pow = BigNumber.prototype.power;
+	    BigNumber.prototype.val = BigNumber.prototype.toString;
+	})(this);
 
 
 /***/ },
-/* 18 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var d3 = __webpack_require__(9);
-	var assert = __webpack_require__(4);
-
-	var GRAPH_RING_RADIUS_MULTIPLIER = __webpack_require__(17).GRAPH_RING_RADIUS_MULTIPLIER;
-
-	/**
-	 *
-	 * Creates ring for ring view, taking width/height as input and outputting the
-	 * radius of the graph, to be reused by drawNodes
-	 *
-	 * @param {!Number} width of container to determine/recalculate graph width
-	 * @param {!Number} height of container to determine/recalculate graph height
-	 * @param {Object} svgContainerTargetElementId an element into which append the svg. sample: `#ring-container`
-	 *
-	 * @returns {Object} configuration properties set up by this fuction, for `make` to reuse
-	 *
-	 * This function may fail for several reasons:
-	 * @throws AssertionError when receiving wrong dimensions (width/height)
-	 *
-	 * @author Joel Quiles
-	 * @since 2015-Nov-16
-	 */
-	module.exports = function(width, height, svgTargetElementId) {
-
-	  assert(typeof width === 'number', 'invalid container element width');
-	  assert(typeof height === 'number', 'invalid container element height');
-
-	  if(!!svgTargetElementId) {
-	    assert(typeof svgTargetElementId === 'string');
-	  }
-
-	  // target element defaults to body if not svgTarget provided
-	  var svgTarget = d3.select(svgTargetElementId || 'body');
-	  var radius = Math.min(width, height); // the ring is a circle, the minimum of both values will make
-
-	  var ringRadius = radius / GRAPH_RING_RADIUS_MULTIPLIER;
-
-	  // append svg element to container
-	  var svg = svgTarget.append("svg")
-	    .attr("width", width)
-	    .attr("height", height)
-	    .append("g")
-	    .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")");
-
-	  // append the ring for the ring view
-	  svg.append("circle")
-	    .attr("class", "ring")
-	    .attr("r", ringRadius)
-	    .style("fill",
-	    "rgba(47, 37, 37, 0.99)"
-	  );
-
-	  return {
-	    svg: svg,
-	    radius: radius
-	  };
-
-	}
-
-
-/***/ },
-/* 19 */
-/***/ function(module, exports, __webpack_require__) {
-
-	
-	var assert = __webpack_require__(4);
-	var drawNode = __webpack_require__(20);
-
-	/**
-	 * Function that calls drawNode and draws all nodes
-	 *
-	 * @param {!Array} nodesArray ann array of nodeTokens
-	 * @param {!Object} configuration receives an object with svg reference and radius of circle
-	 *
-	 * @throws {AssertionError} if not a valid node list array
-	 *
-	 * @author Joel Quiles
-	 * @since 2015-Nov-16
-	 */
-	module.exports = function(nodesArray, configuration) {
-	  assert(Array.isArray(nodesArray), 'invalid node list array');
-
-	  nodesArray.forEach(function(token, index, array){
-	    drawNode(token, configuration);
-	  });
-	}
-
-
-/***/ },
-/* 20 */
-/***/ function(module, exports, __webpack_require__) {
-
-	/**
-	 * Small library that creates a replica of the OpsCenter ring view given a list of cluster nodes
-	 * @author Joel Quiles
-	 * @since 2015-Nov-16
-	 */
-
-	// ------------------------------ NPM IMPORTS ----------------------------------
-
-	var assert = __webpack_require__(4);         // node assertion library- in the browser!
-	var d3 = __webpack_require__(9);                 // Used to create svg graphs
-	var randomRGB = __webpack_require__(10);         // Generate random colors for the node
-
-	// ------------------------------ lib imports ----------------------------------
-
-	var getRatioOfToken = __webpack_require__(23);
-
-	// ----------------------------- file globals ----------------------------------
-
-	var UNIT_CIRCLE_RADIUS = 1; // max radius value in graph circle
-	// To modify size of ring or nodes
-	var GRAPH_RING_RADIUS_MULTIPLIER = __webpack_require__(17).GRAPH_RING_RADIUS_MULTIPLIER;
-	var GRAPH_NODE_RADIUS_MULTIPLIER = __webpack_require__(17).GRAPH_NODE_RADIUS_MULTIPLIER;
-
-	// ------------------------------ Functions ------------------------------------
-
-
-
-	/**
-	 * Draw a node, given a token/id. It needs to find the ratio of the given
-	 * token from the max allowed token, in  other to find the place in the Ring,
-	 * using trigonometry.
-	 *
-	 * @param {!Array} nodeArray list of strings with node tokens
-	 * @param {!Object} configuration which includes a reference to svg element and radius of circle
-	 *
-	 * Might throw this error type:
-	 * @throws AssertionError if nodeToken is not a string, and there is no svg or radius in its configuration
-	 *
-	 * @author Joel Quiles
-	 * @since 2015-Nov-16
-	 */
-	module.exports = function (nodeToken, configuration) {
-
-	  // validate token
-	  assert(nodeToken && typeof nodeToken === 'string', 'invalid nodeToken provided in draw-node');
-	  assert(!isNaN(parseInt(nodeToken, 10)), 'nodeToken provided is not a number in draw-node');
-	  // validate configuration
-	  assert(!!configuration.svg && !!configuration.radius, 'invalid configuration provided in draw-node');
-
-	  var radius = configuration.radius;
-	  var svg = configuration.svg;
-
-	  // Trivia night: the plural form of radius can be either radii or radiuses
-	  var nodeTokenArcRadius = radius / GRAPH_RING_RADIUS_MULTIPLIER;
-	  var nodeRadius = radius / GRAPH_NODE_RADIUS_MULTIPLIER;         // 18 was a magic number, playing with a ratio that made sense
-
-	  // Generate a random rgb color. Then force 0.3 transparency to see overlap of nodes, and change rgb to rgba format
-	  var randomColor = randomRGB({format: 'rgb'}).replace(new RegExp(/[)]$/), ', 0.3)').replace('rgb', 'rgba');
-
-	  // insert node into svg, positioning at ring arc.
-	  svg.append("circle")        // nodes are visualized as circles in the ring view
-	    .attr("class", "node"+nodeToken)
-	    .attr("r", nodeRadius)    // Set radius of the node
-	    // move node's center to the ring's arc radius
-	    .attr("transform", "translate(0," + -nodeTokenArcRadius + ")")
-	    .style("fill", randomColor);
-
-	  // Current position of node (an arc around the ring), with bigger arc when
-	  // bigger ratio to the max allowed token
-	  var nodeTokenPosition = d3.svg.arc()
-	    .startAngle(0)
-	    .endAngle(0);
-
-	  var ratio = getRatioOfToken(nodeToken); // ratio between the provided node token value and max token
-
-	  if(ratio === 0) { // unable to divide by 0, we know the ratio by now :)
-	    ratio = 1;
-	  }
-
-	  // position of circle as radians
-	  var positionInCircle = 2 * Math.PI / ratio;
-
-	  // create a function that uses the end angle 9 (in radians) and the position of element in circle
-	  var interpolateNodePosition = d3.interpolate(nodeTokenPosition.endAngle()(), positionInCircle);
-
-	  // get x and y values of coordinates, using start and end angles
-	  var x = Math.cos(interpolateNodePosition(UNIT_CIRCLE_RADIUS) - nodeTokenPosition.startAngle()()); // x coordinate of angle, using cosine to get this value
-	  var y = Math.sin(interpolateNodePosition(UNIT_CIRCLE_RADIUS) - nodeTokenPosition.startAngle()()); // y coordinate of angle, using sine to get this value
-
-	  // translate node along arc to its position
-	  d3.select(".node"+nodeToken)
-	    .attr("transform", "translate(" + nodeTokenArcRadius * y + "," + -nodeTokenArcRadius * x + ")");
-
-	  document.querySelector(".node"+nodeToken).addEventListener('click', function(){
-	    console.log('token: '+ nodeToken);
-	  });
-	}
-
-
-/***/ },
-/* 21 */
+/* 15 */
 /***/ function(module, exports) {
 
 	/**
@@ -11853,7 +11955,7 @@
 
 
 /***/ },
-/* 22 */
+/* 16 */
 /***/ function(module, exports) {
 
 	/**
@@ -11903,67 +12005,7 @@
 
 
 /***/ },
-/* 23 */
-/***/ function(module, exports, __webpack_require__) {
-
-	
-	// ------------------------------ imports --------------------------------------
-
-	var BigNumber = __webpack_require__(2).n; // to work with BIG numbers in javascript :)
-	// Supported BigNumber methods: add/plus, minus/subtract,
-	// multiply/mult, divide/div, power/pow, mod,
-	// equals, lt, lte, gt, gte, isZero, abs
-	// Sample : var big = BigNumber(5).plus(97).minus(53).plus(434).multiply(5435423).add(321453).multiply(21).div(2).pow(2);
-	// Sample out: 760056543044267246001 // when converting to string
-
-	var assert = __webpack_require__(4);
-
-	// ------------------------------ globals -------------------------------------
-
-	var MAX_TOKEN = BigNumber(2).pow(127)+''; // 2^127 is biggest token value
-
-	// 2^127 = 170141183460469231731687303715884105728
-	// 2^ 126 = 85070591730234615865843651857942052864
-
-
-	/**
-	 * The maximum token id allowed is 2^127. There's one computer science challenge:
-	 * javascript's max number is 2^53-1
-	 *
-	 * From ECMA Section 8.5 - Numbers:
-	 * > Note that all the positive and negative integers whose magnitude is no
-	 * > greater than 2^53 are representable in the Number type...
-	 *
-	 * ES6 defines it as Number.MAX_SAFE_INTEGER.
-	 *
-	 * @param {!String} token a token to calculate ratio of, compared to the MAX_TOKEN value
-	 * @returns {Number} ratio of token, as js number
-	 *
-	 *
-	 * @author Joel Quiles
-	 * @since 2015-Nov-16
-	 */
-	module.exports = function (token) {
-	  assert(typeof token === 'string' && !isNaN(token), 'token is not a string parseable to number, in token-ratio');
-
-	  if(token === '0' || token === '') {                     // I WILL NOT DIVIDE BY 0
-	    return 0;
-	  }
-
-	  if(BigNumber(token).gt(MAX_TOKEN)) {
-	    console.warn('You have passed a higher value than 2^127. This is  not supported. Returning 0');
-	    return 0;
-	  }
-
-	  // tried another algorithm, using log2 and make ratio out of 127, but it was even less accurate
-	  var inverseRatio = BigNumber(MAX_TOKEN).divide(token);
-
-	  return parseInt(inverseRatio, 10);
-	}
-
-
-/***/ },
-/* 24 */
+/* 17 */
 /***/ function(module, exports) {
 
 	module.exports = function(document, window, container, padding) {

@@ -69,11 +69,11 @@ During development, you might want to have these running:
 - `webpack --progress --colors --watch`, to bundle files into bundle.js for import to html
 - `gulp watch`, to watch for scss/sass file changes and create the main.css file
 - `node_modules/mocha/bin/mocha -w app/tests/acceptance.js -t 10000`, to run acceptance tests using selenium
-- `node_modules/mocha/bin/mocha -w app/tests/unit.js`, to run unit tests
+- `node_modules/mocha/bin/mocha -w app/tests/unit/helpers.js`, to run unit tests
 
 ## Running unit tests
 ```
-node_modules/mocha/bin/mocha app/tests/unit.js
+node_modules/mocha/bin/mocha app/tests/unit/draw-svg.js
 ```
 
 ## Dependencies

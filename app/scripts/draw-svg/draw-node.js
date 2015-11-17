@@ -91,7 +91,8 @@ module.exports = function (nodeToken, configuration) {
   d3.select(".node"+nodeToken)
     .attr("transform", "translate(" + nodeTokenArcRadius * y + "," + -nodeTokenArcRadius * x + ")");
 
-  document.querySelector(".node"+nodeToken).addEventListener('click', function(){
-    console.log('token: '+ nodeToken);
-  });
+  // previously only logged one token
+  // document.querySelector(".node"+nodeToken).addEventListener('click', function(){
+  //   console.log('token: '+ nodeToken);
+  // });
 }
