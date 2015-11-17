@@ -67,7 +67,7 @@ window.opsRing = {
 updateBtn.addEventListener('click', function(e) {
   console.log('Clicked update button!', nodeListTA.value, e);
   clearPreviousNodes();
-  var arrayOfTokens = createArrayFromTextAreaTokens(nodeListTA);
+  var arrayOfTokens = createArrayFromTextAreaTokens(nodeListTA.value);
 
   console.log('arrayofToken', arrayOfTokens, 'conf', configuration);
 
