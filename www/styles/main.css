@@ -390,6 +390,11 @@ textarea {
   width: 90%;
   height: 10em; }
 
+button {
+  width: 90%;
+  margin-top: .5em;
+  padding: .5em; }
+
 nav {
   background: rgba(22, 22, 22, 0.1);
   float: right;
@@ -401,8 +406,11 @@ nav {
 main {
   height: 800px; }
 
+footer {
+  display: none; }
+
 .padded {
-  padding: 1em; }
+  padding: 15px; }
 
 .welcome {
   float: left;

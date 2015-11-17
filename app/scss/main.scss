@@ -36,6 +36,12 @@ textarea {
   height: 10em;
 }
 
+button {
+  width: 90%;
+  margin-top: .5em;
+  padding: .5em;
+}
+
 nav {
   background: rgba(22, 22, 22, 0.10);
   float: right;
@@ -50,6 +56,10 @@ nav {
 
 main {
   height: 800px;
+}
+
+footer {
+  display: none;
 }
 
 // --------------------------- Class styles -----------------------------------

@@ -42,10 +42,10 @@ var GRAPH_NODE_RADIUS_MULTIPLIER = require('../constants').GRAPH_NODE_RADIUS_MUL
 module.exports = function (nodeToken, configuration) {
 
   // validate token
-  assert(nodeToken && typeof nodeToken === 'string', 'invalid nodeToken provided');
-  assert(!isNaN(parseInt(nodeToken, 10)), 'nodeToken provided is not a number');
+  assert(nodeToken && typeof nodeToken === 'string', 'invalid nodeToken provided in draw-node');
+  assert(!isNaN(parseInt(nodeToken, 10)), 'nodeToken provided is not a number in draw-node');
   // validate configuration
-  assert(!!configuration.svg && !!configuration.radius, 'invalid configuration provided');
+  assert(!!configuration.svg && !!configuration.radius, 'invalid configuration provided in draw-node');
 
   var radius = configuration.radius;
   var svg = configuration.svg;
@@ -80,6 +80,8 @@ module.exports = function (nodeToken, configuration) {
   // position of circle as radians
   var positionInCircle = 2 * Math.PI / ratio;
 
+  console.log('positionInCircle', positionInCircle);
+
   // create a function that uses the end angle 9 (in radians) and the position of element in circle
   var interpolateNodePosition = d3.interpolate(nodeTokenPosition.endAngle()(), positionInCircle);
 
@@ -90,4 +92,8 @@ module.exports = function (nodeToken, configuration) {
   // translate node along arc to its position
   d3.select(".node"+nodeToken)
     .attr("transform", "translate(" + nodeTokenArcRadius * y + "," + -nodeTokenArcRadius * x + ")");
+
+  document.querySelector(".node"+nodeToken).addEventListener('click', function(){
+    console.log('token: '+ nodeToken);
+  });
 }

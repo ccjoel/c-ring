@@ -46,8 +46,13 @@
 
 	/**
 	 *
-	 * Run OpsRing project into the dom in index.html
+	 * Run OpsRing project into the dom in index.html. It should model or create a
+	 * visualization of the nodes in the cluster using a ring view.
 	 *
+	 * You can interact with the app using the text area and update button provided.
+	 *
+	 * You might also interact with it using the exposed
+	 * window.opsRing.redrawNodes fuction created later in this file.
 	 *
 	 * @author Joel Quiles
 	 * @since 2015-Nov-16
@@ -58,9 +63,6 @@
 	var CLUSTER_NODES_TITLE_HEIGHT_USE = 60;
 
 
-	// --------------------------- npm imports --------------------------------------
-
-
 	// ---------------------------- lib imports ------------------------------------
 
 	// include the required graph lib
@@ -68,13 +70,30 @@
 	var drawNodes = __webpack_require__(19);
 	var clearPreviousNodes = __webpack_require__(21);
 	var createArrayFromTextAreaTokens = __webpack_require__(22);
+	var resizeContainer = __webpack_require__(24);
 
 	// ---------------------------- DOM elements -----------------------------------
+
 
 	// Grab the text area, to then get its contents
 	var nodeListTA = document.querySelector('#node-list-text-area');
 	var container = document.querySelector('main');
 	var updateBtn = document.querySelector('#update-ring-btn');
+	var ringContainer = document.querySelector('#ring-container');
+
+	var CONTAINER_PADDING = 15;
+
+	//normalize main container dimensions on start
+	function normalizeDimensions() {
+	  var headerHeight = document.querySelector('header').offsetHeight;
+	  if (container.offsetWidth > container.offsetHeight) {
+	    container.style.height = container.offsetWidth - (headerHeight) - CONTAINER_PADDING + "px";
+	  }
+	  else if (container.offsetHeight > container.offsetWidth) {
+	    container.style.width = container.offsetHeight + "px";
+	  }
+	}
+	normalizeDimensions();
 
 
 	// --------------------------- Initial State -----------------------------------
@@ -87,20 +106,18 @@
 	var configuration = setupGraph(container.offsetWidth, container.offsetHeight - CLUSTER_NODES_TITLE_HEIGHT_USE, '#ring-container');
 
 	// call drawAllNodes to draw them into ring
-	drawNodes(["170141183460469231731687303715884105728",
-	    "170141183460469231731687303715884105727",
-	    "90141183460469231700007303715884100000",
-	    "85070591730234615865843651857942052864",
-	    "42535295865117307932921825928971026431"
-	  ],
+	drawNodes(createArrayFromTextAreaTokens(nodeListTA.value),
 	  configuration
 	);
 
+	var lastNodesValue = createArrayFromTextAreaTokens(nodeListTA.value);
 
 	// -------------------------------- API ---------------------------------------
 	// expose API to window environment
 	window.opsRing = {
 	  redrawNodes : function(nodesArray) {
+	    // TODO: validate array
+	    lastNodesValue = nodesArray;
 	    clearPreviousNodes();
 	    drawNodes(nodesArray, configuration);
 	  }
@@ -109,23 +126,45 @@
 
 	// -------------------------- DOM event handlers -------------------------------
 
+
 	// handle button click event
 	updateBtn.addEventListener('click', function(e) {
-	  console.log('Clicked update button!', nodeListTA.value, e);
-	  clearPreviousNodes();
+
+	  clearPreviousNodes();           // remove all prev nodes from svg
+
+	  if(nodeListTA.value === "") {   // if textarea empty, do nothing
+	    return;
+	  }
+
+	  // get tokans as array, and update reference to last array of tokens
 	  var arrayOfTokens = createArrayFromTextAreaTokens(nodeListTA.value);
+	  lastNodesValue = createArrayFromTextAreaTokens(nodeListTA.value);
 
-	  console.log('arrayofToken', arrayOfTokens, 'conf', configuration);
-
-	  // call draw with these nodes
+	  // call draw with these new nodes
 	  drawNodes(arrayOfTokens, configuration);
 
 	});
 
 
-	// TODO: resize / remake graph on browser resize
+
+
+	// resize / remake graph on browser resize
 	window.addEventListener('resize', function() {
 	  console.log('window resized!');
+
+	  // remove old svg graph
+	  var svg = document.querySelector('svg');
+	  if(svg) {
+	    svg.parentNode.removeChild(svg);
+	  }
+
+
+	  resizeContainer(document, window, container, CONTAINER_PADDING);
+
+	  // call setup again
+	  configuration = setupGraph(container.offsetWidth, container.offsetHeight - CLUSTER_NODES_TITLE_HEIGHT_USE, '#ring-container');
+	  // call draw again with last values
+	  window.opsRing.redrawNodes(lastNodesValue);
 	});
 
 
@@ -11593,6 +11632,11 @@
 /* 17 */
 /***/ function(module, exports) {
 
+	
+	/**
+	 * Some constants to use accross draw-svg files for the most part
+	 * @since 2015-Nov-16
+	 */
 	module.exports = {
 	  GRAPH_RING_RADIUS_MULTIPLIER : 2.5,
 	  GRAPH_NODE_RADIUS_MULTIPLIER: 18
@@ -11739,10 +11783,10 @@
 	module.exports = function (nodeToken, configuration) {
 
 	  // validate token
-	  assert(nodeToken && typeof nodeToken === 'string', 'invalid nodeToken provided');
-	  assert(!isNaN(parseInt(nodeToken, 10)), 'nodeToken provided is not a number');
+	  assert(nodeToken && typeof nodeToken === 'string', 'invalid nodeToken provided in draw-node');
+	  assert(!isNaN(parseInt(nodeToken, 10)), 'nodeToken provided is not a number in draw-node');
 	  // validate configuration
-	  assert(!!configuration.svg && !!configuration.radius, 'invalid configuration provided');
+	  assert(!!configuration.svg && !!configuration.radius, 'invalid configuration provided in draw-node');
 
 	  var radius = configuration.radius;
 	  var svg = configuration.svg;
@@ -11777,6 +11821,8 @@
 	  // position of circle as radians
 	  var positionInCircle = 2 * Math.PI / ratio;
 
+	  console.log('positionInCircle', positionInCircle);
+
 	  // create a function that uses the end angle 9 (in radians) and the position of element in circle
 	  var interpolateNodePosition = d3.interpolate(nodeTokenPosition.endAngle()(), positionInCircle);
 
@@ -11787,6 +11833,10 @@
 	  // translate node along arc to its position
 	  d3.select(".node"+nodeToken)
 	    .attr("transform", "translate(" + nodeTokenArcRadius * y + "," + -nodeTokenArcRadius * x + ")");
+
+	  document.querySelector(".node"+nodeToken).addEventListener('click', function(){
+	    console.log('token: '+ nodeToken);
+	  });
 	}
 
 
@@ -11794,11 +11844,22 @@
 /* 21 */
 /***/ function(module, exports) {
 
+	/**
+	 * This function removes all nodes from the svg, to prepare to add new ones with
+	 * different token values.
+	 *
+	 * @author Joel Quiles
+	 * @since 2015-Nov-16
+	 */
+
 	module.exports = function() {
 	  var nodes = document.querySelectorAll('circle:not(.ring)');
 	  if(nodes && nodes.length) {
 	    for(var i in nodes) {
 	      if(nodes.hasOwnProperty(i)) {
+	        // remove click listener. just in case
+	        nodes[i].removeEventListener('click');
+	        // remove node from parent svg -> g element
 	        nodes[i].parentNode.removeChild(nodes[i]);
 	      }
 	    }
@@ -11811,8 +11872,27 @@
 /***/ function(module, exports) {
 
 	/**
+	 * Receives a node string, like the one from the input text area, given the format
+	 * from the specifications. It cleans up this input and stores into an array
+	 *
+	 * Example:
+	 *
+	 * Text area's contents are: "0", "357645765467"
+
+	 * If we don't clean the data, the array might turn out to be:
+	 * [' "4545" ', ' " 4" ']
+	 * etc
+	 *
+	 * Thus, this fuction returns it like so:
+	 *
+	 * ['4545', '4']  // with no spaces, commas, or quote characters
+	 *
+	 *
 	 * @param {!Object} nodeListTa reference to the text area DOM element
 	 * @returns array of entered strings from text area
+	 *
+	 * @author Joel Quiles
+	 * @since 2015-Nov-16
 	 */
 	module.exports = function (nodesString) {
 
@@ -11853,7 +11933,7 @@
 
 	// ------------------------------ globals -------------------------------------
 
-	var MAX_TOKEN = BigNumber(2).pow(127).plus(1)+''; // 2^127 is biggest token value
+	var MAX_TOKEN = BigNumber(2).pow(127)+''; // 2^127 is biggest token value
 
 	// 2^127 = 170141183460469231731687303715884105728
 	// 2^ 126 = 85070591730234615865843651857942052864
@@ -11878,14 +11958,49 @@
 	 */
 	module.exports = function (token) {
 
-	  assert(typeof token === 'string' && !isNaN(token), 'token is not a string parseable to number');
+	  assert(typeof token === 'string' && !isNaN(token), 'token is not a string parseable to number, in token-ratio');
 
 	  if(token === '0' || token === '') {                     // I WILL NOT DIVIDE BY 0
 	    return 0;
 	  }
 	  // TODO: for another algorithm, check modulus 2, then use log and make ratio out of 127 ?
 	  var inverseRatio = BigNumber(MAX_TOKEN).divide(token);
+
+	  console.log('ratio!', inverseRatio+'');
+
 	  return parseInt(inverseRatio, 10);
+	}
+
+
+/***/ },
+/* 24 */
+/***/ function(module, exports) {
+
+	module.exports = function(document, window, container, padding) {
+
+	  console.log('resizing container');
+
+	  var sidebar = document.querySelector('.sidebar');
+
+	  var sideBarWidth = sidebar.offsetWidth;
+	  var sideBarHeight = sidebar.offsetHeight;
+	  var windowWidth = window.innerWidth;
+	  var windowHeight = window.innerHeight;
+
+	  var containerHeight = container.offsetHeight;
+	  var containerWidth = container.offsetrWidth;
+
+	  if(containerWidth < windowWidth - sideBarWidth - padding) {
+	    container.style.width = windowWidth - sideBarWidth - padding + "px";
+	  }
+
+	  if(containerHeight > containerWidth) {
+	    container.style.height = containerWidth + "px";
+	  }
+	  if(containerWidth > containerHeight) {
+	    container.style.width = containerHeight + "px";
+	  }
+
 	}
 
 

@@ -1,7 +1,12 @@
 /**
  *
- * Run OpsRing project into the dom in index.html
+ * Run OpsRing project into the dom in index.html. It should model or create a
+ * visualization of the nodes in the cluster using a ring view.
  *
+ * You can interact with the app using the text area and update button provided.
+ *
+ * You might also interact with it using the exposed
+ * window.opsRing.redrawNodes fuction created later in this file.
  *
  * @author Joel Quiles
  * @since 2015-Nov-16
@@ -12,9 +17,6 @@
 var CLUSTER_NODES_TITLE_HEIGHT_USE = 60;
 
 
-// --------------------------- npm imports --------------------------------------
-
-
 // ---------------------------- lib imports ------------------------------------
 
 // include the required graph lib
@@ -22,13 +24,30 @@ var setupGraph = require('./draw-svg/setup-ring');
 var drawNodes = require('./draw-svg/draw-all-nodes');
 var clearPreviousNodes = require('./helpers/clear-nodes');
 var createArrayFromTextAreaTokens = require('./helpers/array-from-tokens');
+var resizeContainer = require('./helpers/resize-svg-container');
 
 // ---------------------------- DOM elements -----------------------------------
+
 
 // Grab the text area, to then get its contents
 var nodeListTA = document.querySelector('#node-list-text-area');
 var container = document.querySelector('main');
 var updateBtn = document.querySelector('#update-ring-btn');
+var ringContainer = document.querySelector('#ring-container');
+
+var CONTAINER_PADDING = 15;
+
+//normalize main container dimensions on start
+function normalizeDimensions() {
+  var headerHeight = document.querySelector('header').offsetHeight;
+  if (container.offsetWidth > container.offsetHeight) {
+    container.style.height = container.offsetWidth - (headerHeight) - CONTAINER_PADDING + "px";
+  }
+  else if (container.offsetHeight > container.offsetWidth) {
+    container.style.width = container.offsetHeight + "px";
+  }
+}
+normalizeDimensions();
 
 
 // --------------------------- Initial State -----------------------------------
@@ -41,20 +60,18 @@ nodeListTA.value = '"0", "170141183460469231731687303715884105728", "85070591730
 var configuration = setupGraph(container.offsetWidth, container.offsetHeight - CLUSTER_NODES_TITLE_HEIGHT_USE, '#ring-container');
 
 // call drawAllNodes to draw them into ring
-drawNodes(["170141183460469231731687303715884105728",
-    "170141183460469231731687303715884105727",
-    "90141183460469231700007303715884100000",
-    "85070591730234615865843651857942052864",
-    "42535295865117307932921825928971026431"
-  ],
+drawNodes(createArrayFromTextAreaTokens(nodeListTA.value),
   configuration
 );
 
+var lastNodesValue = createArrayFromTextAreaTokens(nodeListTA.value);
 
 // -------------------------------- API ---------------------------------------
 // expose API to window environment
 window.opsRing = {
   redrawNodes : function(nodesArray) {
+    // TODO: validate array
+    lastNodesValue = nodesArray;
     clearPreviousNodes();
     drawNodes(nodesArray, configuration);
   }
@@ -63,21 +80,43 @@ window.opsRing = {
 
 // -------------------------- DOM event handlers -------------------------------
 
+
 // handle button click event
 updateBtn.addEventListener('click', function(e) {
-  console.log('Clicked update button!', nodeListTA.value, e);
-  clearPreviousNodes();
+
+  clearPreviousNodes();           // remove all prev nodes from svg
+
+  if(nodeListTA.value === "") {   // if textarea empty, do nothing
+    return;
+  }
+
+  // get tokans as array, and update reference to last array of tokens
   var arrayOfTokens = createArrayFromTextAreaTokens(nodeListTA.value);
+  lastNodesValue = createArrayFromTextAreaTokens(nodeListTA.value);
 
-  console.log('arrayofToken', arrayOfTokens, 'conf', configuration);
-
-  // call draw with these nodes
+  // call draw with these new nodes
   drawNodes(arrayOfTokens, configuration);
 
 });
 
 
-// TODO: resize / remake graph on browser resize
+
+
+// resize / remake graph on browser resize
 window.addEventListener('resize', function() {
   console.log('window resized!');
+
+  // remove old svg graph
+  var svg = document.querySelector('svg');
+  if(svg) {
+    svg.parentNode.removeChild(svg);
+  }
+
+
+  resizeContainer(document, window, container, CONTAINER_PADDING);
+
+  // call setup again
+  configuration = setupGraph(container.offsetWidth, container.offsetHeight - CLUSTER_NODES_TITLE_HEIGHT_USE, '#ring-container');
+  // call draw again with last values
+  window.opsRing.redrawNodes(lastNodesValue);
 });
