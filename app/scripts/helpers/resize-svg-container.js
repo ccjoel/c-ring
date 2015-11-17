@@ -1,7 +1,5 @@
 module.exports = function(document, window, container, padding) {
 
-  console.log('resizing container');
-
   var sidebar = document.querySelector('.sidebar');
 
   var sideBarWidth = sidebar.offsetWidth;

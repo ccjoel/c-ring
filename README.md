@@ -7,7 +7,7 @@ A small project that implements a small feature of OpsCenter for interview purpo
 
 `http://ops-ring.cf`
 
-# Runing Project
+# Running Project
 
 The previously built dev version is checked to repo under `www/` dir, just deploy it on a server.
 You might use a dev server, like the npm package `http-server`.
@@ -39,11 +39,15 @@ and press update to view the changes.
 The compilable assets are contained under the `app` dir. You may run these under root directory:
 
 To compile js into one bundle/file:
-```webpack```
+```
+webpack
+```
 ^ this is important, since we only import one file into index.html, and we can `require` modules as we would in a node environment.
 
 To process sass into css:
-```gulp styles```
+```
+gulp styles
+```
 
 ## Development
 
@@ -54,7 +58,9 @@ During development, you might want to have these running:
 - `node_modules/mocha/bin/mocha -w app/tests/unit.js`, to run unit tests
 
 ## Running unit tests
-```node_modules/mocha/bin/mocha app/tests/unit.js```
+```
+node_modules/mocha/bin/mocha app/tests/unit.js
+```
 
 ## Dependencies
 

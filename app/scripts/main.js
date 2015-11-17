@@ -83,34 +83,25 @@ window.opsRing = {
 
 // handle button click event
 updateBtn.addEventListener('click', function(e) {
-
   clearPreviousNodes();           // remove all prev nodes from svg
-
   if(nodeListTA.value === "") {   // if textarea empty, do nothing
     return;
   }
-
   // get tokans as array, and update reference to last array of tokens
   var arrayOfTokens = createArrayFromTextAreaTokens(nodeListTA.value);
   lastNodesValue = arrayOfTokens;
-
   // call draw with these new nodes
   drawNodes(arrayOfTokens, configuration);
-
 });
 
 // resize / remake graph on browser resize
 window.addEventListener('resize', function() {
-  console.log('window resized!');
-
   // remove old svg graph
   var svg = document.querySelector('svg');
   if(svg) {
     svg.parentNode.removeChild(svg);
   }
-
   resizeContainer(document, window, container, CONTAINER_PADDING);
-
   // call setup again
   configuration = setupGraph(container.offsetWidth, container.offsetHeight - CLUSTER_NODES_TITLE_HEIGHT_USE, '#ring-container');
   // call draw again with last values
