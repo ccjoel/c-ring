@@ -12,71 +12,18 @@ var randomRGB = require('randomcolor');         // Generate random colors for th
 
 // ------------------------------ lib imports ----------------------------------
 
-var getRatioOfToken = require('./token-ratio');
+var getRatioOfToken = require('../helpers/token-ratio');
 
 // ----------------------------- file globals ----------------------------------
 
 var UNIT_CIRCLE_RADIUS = 1; // max radius value in graph circle
-
 // To modify size of ring or nodes
-var GRAPH_RING_RADIUS_MULTIPLIER = 2.5;
-var GRAPH_NODE_RADIUS_MULTIPLIER = 18;
+var GRAPH_RING_RADIUS_MULTIPLIER = require('../constants').GRAPH_RING_RADIUS_MULTIPLIER;
+var GRAPH_NODE_RADIUS_MULTIPLIER = require('../constants').GRAPH_NODE_RADIUS_MULTIPLIER;
 
 // ------------------------------ Functions ------------------------------------
 
-/**
- *
- * Creates ring for ring view, taking width/height as input and outputting the
- * radius of the graph, to be reused by drawNodes
- *
- * @param {!Number} width of container to determine/recalculate graph width
- * @param {!Number} height of container to determine/recalculate graph height
- * @param {Object} svgContainerTargetElementId an element into which append the svg. sample: `#ring-container`
- *
- * @returns {Object} configuration properties set up by this fuction, for `make` to reuse
- *
- * This function may fail for several reasons:
- * @throws AssertionError when receiving wrong dimensions (width/height)
- *
- * @author Joel Quiles
- * @since 2015-Nov-16
- */
-exports.setupRing = function(width, height, svgTargetElementId) {
 
-  assert(typeof width === 'number', 'invalid container element width');
-  assert(typeof height === 'number', 'invalid container element height');
-
-  if(!!svgTargetElementId) {
-    assert(typeof svgTargetElementId === 'string');
-  }
-
-  // target element defaults to body if not svgTarget provided
-  var svgTarget = d3.select(svgTargetElementId || 'body');
-  var radius = Math.min(width, height); // the ring is a circle, the minimum of both values will make
-
-  var ringRadius = radius / GRAPH_RING_RADIUS_MULTIPLIER;
-
-  // append svg element to container
-  var svg = svgTarget.append("svg")
-    .attr("width", width)
-    .attr("height", height)
-    .append("g")
-    .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")");
-
-  // append the ring for the ring view
-  svg.append("circle")
-    .attr("class", "ring")
-    .attr("r", ringRadius)
-    .style("fill",
-    "rgba(47, 37, 37, 0.99)"
-  );
-
-  return {
-    svg: svg,
-    radius: radius
-  };
-
-}
 
 /**
  * Draw a node, given a token/id. It needs to find the ratio of the given
@@ -92,7 +39,7 @@ exports.setupRing = function(width, height, svgTargetElementId) {
  * @author Joel Quiles
  * @since 2015-Nov-16
  */
-function drawNode(nodeToken, configuration) {
+module.exports = function (nodeToken, configuration) {
 
   // validate token
   assert(nodeToken && typeof nodeToken === 'string', 'invalid nodeToken provided');
@@ -143,26 +90,4 @@ function drawNode(nodeToken, configuration) {
   // translate node along arc to its position
   d3.select(".node"+nodeToken)
     .attr("transform", "translate(" + nodeTokenArcRadius * y + "," + -nodeTokenArcRadius * x + ")");
-
-}
-
-exports.drawNode = drawNode;
-
-/**
- * Function that calls drawNode and draws all nodes
- *
- * @param {!Array} nodesArray ann array of nodeTokens
- * @param {!Object} configuration receives an object with svg reference and radius of circle
- *
- * @throws {AssertionError} if not a valid node list array
- *
- * @author Joel Quiles
- * @since 2015-Nov-16
- */
-exports.drawAllNodes = function(nodesArray, configuration) {
-  assert(Array.isArray(nodesArray), 'invalid node list array');
-
-  nodesArray.forEach(function(token, index, array){
-    drawNode(token, configuration);
-  });
 }
