@@ -55,7 +55,7 @@ describe('Ratio of big numbers function', function() {
 describe('array from tokens', function(){
   it('should return an array with only numbers as string, no commas or whitespace', function(){
 
-    expect(arrayFromTokens('"0", "3545", "454554545"')).to.have.length(3);
+    expect(arrayFromTokens('"0", "3545","↵454554545"')).to.have.length(3);
     // console.log(arrayFromTokens('"0","3545","454554545"'));
     // console.log(arrayFromTokens('   "0",   "3545",   "454554545"'));
     // console.log(arrayFromTokens('   "0",   " 3545   "   ,   "454554545"'));

@@ -30,13 +30,17 @@ module.exports = function (nodesString) {
 
   var regexQuotes = new RegExp('"', 'g') ;
   var regexWhiteSpace = new RegExp(" ", 'g') ;
+  var regexEnter = new RegExp("↵", 'g');
+  var regexEnterN = new RegExp("\n", 'g');
 
-  var result = nodesString
+  var resultArray = nodesString
     .replace(regexQuotes,"")
     .replace(regexWhiteSpace,"")
+    .replace(regexEnter,"")
+    .replace(regexEnterN,"")
     .split(",");
 
-  console.log('result', result);
+  console.log('array should be clean', resultArray);
 
-  return result;
+  return resultArray;
 }

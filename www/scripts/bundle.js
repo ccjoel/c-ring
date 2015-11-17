@@ -138,15 +138,14 @@
 
 	  // get tokans as array, and update reference to last array of tokens
 	  var arrayOfTokens = createArrayFromTextAreaTokens(nodeListTA.value);
-	  lastNodesValue = createArrayFromTextAreaTokens(nodeListTA.value);
+	  lastNodesValue = arrayOfTokens;
+
+	  console.log('lastNodesValue', lastNodesValue);
 
 	  // call draw with these new nodes
 	  drawNodes(arrayOfTokens, configuration);
 
 	});
-
-
-
 
 	// resize / remake graph on browser resize
 	window.addEventListener('resize', function() {
@@ -157,7 +156,6 @@
 	  if(svg) {
 	    svg.parentNode.removeChild(svg);
 	  }
-
 
 	  resizeContainer(document, window, container, CONTAINER_PADDING);
 
@@ -11903,15 +11901,19 @@
 
 	  var regexQuotes = new RegExp('"', 'g') ;
 	  var regexWhiteSpace = new RegExp(" ", 'g') ;
+	  var regexEnter = new RegExp("↵", 'g');
+	  var regexEnterN = new RegExp("\n", 'g');
 
-	  var result = nodesString
+	  var resultArray = nodesString
 	    .replace(regexQuotes,"")
 	    .replace(regexWhiteSpace,"")
+	    .replace(regexEnter,"")
+	    .replace(regexEnterN,"")
 	    .split(",");
 
-	  console.log('result', result);
+	  console.log('array should be clean', resultArray);
 
-	  return result;
+	  return resultArray;
 	}
 
 
@@ -11957,16 +11959,13 @@
 	 * @since 2015-Nov-16
 	 */
 	module.exports = function (token) {
-
 	  assert(typeof token === 'string' && !isNaN(token), 'token is not a string parseable to number, in token-ratio');
 
 	  if(token === '0' || token === '') {                     // I WILL NOT DIVIDE BY 0
 	    return 0;
 	  }
-	  // TODO: for another algorithm, check modulus 2, then use log and make ratio out of 127 ?
+	  // tried another algorithm, using log2 and make ratio out of 127, but it was even less accurate
 	  var inverseRatio = BigNumber(MAX_TOKEN).divide(token);
-
-	  console.log('ratio!', inverseRatio+'');
 
 	  return parseInt(inverseRatio, 10);
 	}

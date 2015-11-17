@@ -36,16 +36,13 @@ var MAX_TOKEN = BigNumber(2).pow(127)+''; // 2^127 is biggest token value
  * @since 2015-Nov-16
  */
 module.exports = function (token) {
-
   assert(typeof token === 'string' && !isNaN(token), 'token is not a string parseable to number, in token-ratio');
 
   if(token === '0' || token === '') {                     // I WILL NOT DIVIDE BY 0
     return 0;
   }
-  // TODO: for another algorithm, check modulus 2, then use log and make ratio out of 127 ?
+  // tried another algorithm, using log2 and make ratio out of 127, but it was even less accurate
   var inverseRatio = BigNumber(MAX_TOKEN).divide(token);
-
-  console.log('ratio!', inverseRatio+'');
 
   return parseInt(inverseRatio, 10);
 }

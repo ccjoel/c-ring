@@ -92,15 +92,14 @@ updateBtn.addEventListener('click', function(e) {
 
   // get tokans as array, and update reference to last array of tokens
   var arrayOfTokens = createArrayFromTextAreaTokens(nodeListTA.value);
-  lastNodesValue = createArrayFromTextAreaTokens(nodeListTA.value);
+  lastNodesValue = arrayOfTokens;
+
+  console.log('lastNodesValue', lastNodesValue);
 
   // call draw with these new nodes
   drawNodes(arrayOfTokens, configuration);
 
 });
-
-
-
 
 // resize / remake graph on browser resize
 window.addEventListener('resize', function() {
@@ -111,7 +110,6 @@ window.addEventListener('resize', function() {
   if(svg) {
     svg.parentNode.removeChild(svg);
   }
-
 
   resizeContainer(document, window, container, CONTAINER_PADDING);
 
