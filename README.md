@@ -12,9 +12,7 @@ A small project that implements a small feature of OpsCenter for interview purpo
 The previously built dev version is checked to repo under `www/` dir, just deploy it on a server.
 You might use a dev server, like the npm package `http-server`.
 
-## Deploying Project
-
-Dist version of the project (minified, etc) under `dist/`.
+Won't minify sources for now, since it might help with inspecting.
 
 ## Setting up the project
 `npm install`

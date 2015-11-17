@@ -4,7 +4,7 @@
   "description": "Implement a small feature of OpsCenter for interview purposes -> Cassandra Cluster Ring",
   "main": "index.html",
   "scripts": {
-    "test": "node_modules/mocha/bin/mocha app/tests/acceptance.js -t 10000"
+    "test": "node_modules/mocha/bin/mocha app/tests/unit/draw-svg.js"
   },
   "keywords": [
     "opscenter",
