@@ -27,7 +27,7 @@ describe('Ratio of big numbers function', function() {
       getRatioOfToken('a');
     } catch(e) {
       expect(e.name).to.equal('AssertionError');
-      expect(e.message).to.equal('token is not a string parseable to number');
+      expect(e.message).to.equal('token is not a string parseable to number, in token-ratio');
     }
 
       expect(getRatioOfToken('')).to.equal(0);
@@ -37,7 +37,7 @@ describe('Ratio of big numbers function', function() {
         getRatioOfToken({});
       } catch(e) {
         expect(e.name).to.equal('AssertionError');
-        expect(e.message).to.equal('token is not a string parseable to number');
+        expect(e.message).to.equal('token is not a string parseable to number, in token-ratio');
       }
 
   });
