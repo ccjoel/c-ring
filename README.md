@@ -30,6 +30,10 @@ You may also input the array contents on the textArea of the Application:
 
 and press update to view the changes.
 
+Note: You will need an internet connection to run the app. It loads a google web font.
+If you don't have internet, it will take its time to try to load the font,
+and then it will boot with the rest of the application running.
+
 # Project files:
 
 Actual dev code:
