@@ -1,4 +1,12 @@
-Unreleased
+# Unreleased
+
+##### TODO
+
+- better change size on browser resize
+- Do something better about the overlapping nodes, to distinguish them better
+
+
+# 0.0.1 2015-11-17
 
 ##### Added
 
@@ -7,17 +15,15 @@ Unreleased
  - Functions to draw nodes on their correct position
  - api to update nodes drawn
  - handle assertion errors -> show alert
-
-##### TODO
-
-- change size on browser resize
-- do something about the overlapping nodes, to distinguish them better
+ - Added filtering function
 
 ##### Bugs
 - Assert does not work on non-V8 browsers. Won't use it again. But for now, app
 will not throw proper assertion errors on Firefox.
 
-0.0.1 2015-11-16
+
+
+---------------------------------- Tags used ---------------
 
 Added
 Modified

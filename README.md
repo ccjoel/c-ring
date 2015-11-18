@@ -93,7 +93,7 @@ node_modules/mocha/bin/mocha app/tests/unit/draw-svg.js
 
 ## Dependencies
 
-To be able to run npm/bower install, you will need:
+To be able to run npm install, you will need:
 
 - `nodejs`:
  - If Ubuntu: `sudo apt-get install nodejs`
