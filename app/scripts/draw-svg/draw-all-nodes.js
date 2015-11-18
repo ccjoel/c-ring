@@ -1,5 +1,5 @@
 
-var assert = require('assert');
+var assert = require('../assert').assert;
 var drawNode = require('./draw-node');
 
 /**

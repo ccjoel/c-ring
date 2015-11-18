@@ -1,5 +1,5 @@
 var d3 = require('d3');
-var assert = require('assert');
+var assert = require('../assert').assert;
 
 var GRAPH_RING_RADIUS_MULTIPLIER = require('../constants').GRAPH_RING_RADIUS_MULTIPLIER;
 

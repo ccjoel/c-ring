@@ -8,7 +8,7 @@ var BigNumber = require('big-number').n; // to work with BIG numbers in javascri
 // Sample : var big = BigNumber(5).plus(97).minus(53).plus(434).multiply(5435423).add(321453).multiply(21).div(2).pow(2);
 // Sample out: 760056543044267246001 // when converting to string
 
-var assert = require('assert');
+var assert = require('../assert').assert;
 
 // ------------------------------ globals -------------------------------------
 
@@ -49,17 +49,18 @@ module.exports = function (token) {
     return 1.0;
   }
 
-  // if less than 2^100, you wont see the difference :)
+  // if less than 2^100, your eye wont see the difference in the ring
   if(Math.log2(BigNumber(token)) < 100) {
     return 0.0;
   }
 
   // scale token by same ratio as MAX_TOKEN
+  // We convert BigNumber to its string representation (e.g. '4343434343434') by adding ''
   var tokenScaled = BigNumber(token).divide(MAX_DIFF+'')+'';
   // convert to float both 2^127 and received token
   var tokenScaledFloat = parseFloat(tokenScaled, 10);
   var maxScaledFloat = parseFloat(BigNumber(MAX_TOKEN+''),10);
 
-  // return the ratio MAX:token
+  // return the ratio of MAX:token
   return maxScaledFloat / tokenScaledFloat;
 }

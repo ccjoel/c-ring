@@ -18,7 +18,7 @@ module.exports = function(event) {
     }
 
     allElementsClicked.push(element);
-    element.style.visibility = "hidden"; // no flickering and no infinite :)
+    element.style.visibility = "hidden"; // no flickering and no infinite
     element = document.elementFromPoint(x, y);
   }
 
@@ -27,7 +27,10 @@ module.exports = function(event) {
   }
 }
 
-
+/**
+ * TODO
+ * cool special effect when near the nodes
+ */
 function moveOverlappingNodesOnHover(event) {
   var x = event.pageX,
     y = event.pageY;
@@ -43,7 +46,7 @@ function moveOverlappingNodesOnHover(event) {
     }
 
     allElementsClicked.push(element);
-    element.style.visibility = "hidden"; // no flickering and no infinite :)
+    element.style.visibility = "hidden"; // no flickering and no infinite
     element = document.elementFromPoint(x, y);
   }
 

@@ -62,6 +62,10 @@ www
 ```
 npm install
 ```
+Also, install some global dependencies to easier build project:
+```
+npm install -g webpack gulp
+```
 
 ## Build
 

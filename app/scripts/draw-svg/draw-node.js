@@ -8,7 +8,7 @@
 
 // ------------------------------ NPM IMPORTS ----------------------------------
 
-var assert = require('assert');         // node assertion library- in the browser!
+var assert = require('../assert').assert;         // node assertion library- in the browser!
 var d3 = require('d3');                 // Used to create svg graphs
 var randomRGB = require('randomcolor');         // Generate random colors for the node
 
@@ -74,7 +74,7 @@ module.exports = function (nodeToken, configuration) {
 
   var ratio = getRatioOfToken(nodeToken); // ratio between the provided node token value and max token
 
-  if(ratio === 0) { // unable to divide by 0, we know the ratio by now :)
+  if(ratio === 0) { // unable to divide by 0, we know the ratio by now
     ratio = 1.0;
   }
 
