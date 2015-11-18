@@ -135,7 +135,7 @@
 	// -------------------------------- API ---------------------------------------
 	// expose API to window environment
 	window.opsRing = {
-	  redrawNodes: function(nodesArray) {
+	  drawNew: function(nodesArray) {
 	    try {
 	      clearPreviousNodes();
 	      drawNodes(nodesArray, configuration);

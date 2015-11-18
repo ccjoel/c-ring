@@ -89,7 +89,7 @@ console.log('Sample use with input:\nopsRing.redrawNodes(["0", "8507059173023461
 // -------------------------------- API ---------------------------------------
 // expose API to window environment
 window.opsRing = {
-  redrawNodes: function(nodesArray) {
+  drawNew: function(nodesArray) {
     try {
       clearPreviousNodes();
       drawNodes(nodesArray, configuration);

@@ -26,7 +26,7 @@ You may use the dev tools/console on your browser. I have exposed a function
 Sample call of this function with array format:
 
  ```javascript
-window.opsRing.redrawNodes(["0","85070591730234615865843651857942052864"]);
+window.opsRing.drawNew(["0","85070591730234615865843651857942052864"]);
  ```
 
 If you input a number higher than 2^127, it will just print 2^127's position.
