@@ -52,7 +52,7 @@
 	 * You can interact with the app using the text area and update button provided.
 	 *
 	 * You might also interact with it using the exposed
-	 * window.opsRing.redrawNodes fuction created later in this file.
+	 * window.opsRing.drawNew fuction created later in this file.
 	 *
 	 * @author Joel Quiles
 	 * @since 2015-Nov-16
@@ -129,7 +129,7 @@
 	var lastNodesValue = createArrayFromTextAreaTokens(nodeListTA.value);
 
 	console.log('Welcome.\nThe Ring nodes change color each time they are repainted,to a random color, just to make it more fun.');
-	console.log('\nYou may call window.opsRing.redrawNodes to change nodes to your pleasure.');
+	console.log('\nYou may call window.opsRing.drawNew to change nodes to your pleasure.');
 	console.log('Sample use with input:\nopsRing.drawNew(["0", "85070591730234615865843651857942052864"])');
 
 	// -------------------------------- API ---------------------------------------
@@ -184,7 +184,7 @@
 	  // call setup again
 	  configuration = setupGraph(container.offsetWidth, container.offsetHeight - CLUSTER_NODES_TITLE_HEIGHT_USE, '#ring-container');
 	  // call draw again with last values
-	  window.opsRing.redrawNodes(lastNodesValue);
+	  window.opsRing.drawNew(lastNodesValue);
 	  document.querySelector('#filter-input').value = ""; // also, clear filter value
 	});
 
@@ -10958,8 +10958,8 @@
 
 	    for(var i in nodes) {
 	      if(nodes.hasOwnProperty(i) && i !== 'length') { // safari insists on adding this property
-	        // remove click listener. just in case
-	        nodes[i].removeEventListener('click');
+	        // remove click listener. just in case, not working in firefox. will remove for now.
+	        // nodes[i].removeEventListener('click');
 	        // remove node from parent svg -> g element
 	        try{
 	          nodes[i].parentNode.removeChild(nodes[i]);

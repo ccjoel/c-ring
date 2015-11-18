@@ -6,7 +6,7 @@
  * You can interact with the app using the text area and update button provided.
  *
  * You might also interact with it using the exposed
- * window.opsRing.redrawNodes fuction created later in this file.
+ * window.opsRing.drawNew fuction created later in this file.
  *
  * @author Joel Quiles
  * @since 2015-Nov-16
@@ -83,7 +83,7 @@ drawNodes(createArrayFromTextAreaTokens(nodeListTA.value),
 var lastNodesValue = createArrayFromTextAreaTokens(nodeListTA.value);
 
 console.log('Welcome.\nThe Ring nodes change color each time they are repainted,to a random color, just to make it more fun.');
-console.log('\nYou may call window.opsRing.redrawNodes to change nodes to your pleasure.');
+console.log('\nYou may call window.opsRing.drawNew to change nodes to your pleasure.');
 console.log('Sample use with input:\nopsRing.drawNew(["0", "85070591730234615865843651857942052864"])');
 
 // -------------------------------- API ---------------------------------------
@@ -138,7 +138,7 @@ window.addEventListener('resize', function() {
   // call setup again
   configuration = setupGraph(container.offsetWidth, container.offsetHeight - CLUSTER_NODES_TITLE_HEIGHT_USE, '#ring-container');
   // call draw again with last values
-  window.opsRing.redrawNodes(lastNodesValue);
+  window.opsRing.drawNew(lastNodesValue);
   document.querySelector('#filter-input').value = ""; // also, clear filter value
 });
 

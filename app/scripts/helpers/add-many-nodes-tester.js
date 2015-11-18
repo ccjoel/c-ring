@@ -15,5 +15,5 @@ module.exports = function addManyNodesTester(n) {
     input.push(i+"");
   }
 
-  window.opsRing.redrawNodes(input);
+  window.opsRing.drawNew(input);
 }
