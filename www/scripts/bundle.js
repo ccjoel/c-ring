@@ -67,10 +67,10 @@
 
 	// include the required graph lib
 	var setupGraph = __webpack_require__(1);
-	var drawNodes = __webpack_require__(9);
-	var clearPreviousNodes = __webpack_require__(13);
-	var createArrayFromTextAreaTokens = __webpack_require__(14);
-	var resizeContainer = __webpack_require__(15);
+	var drawNodes = __webpack_require__(10);
+	var clearPreviousNodes = __webpack_require__(16);
+	var createArrayFromTextAreaTokens = __webpack_require__(17);
+	var resizeContainer = __webpack_require__(18);
 
 	// ---------------------------- DOM elements -----------------------------------
 
@@ -113,7 +113,7 @@
 
 	console.log('Welcome.\nThe Ring nodes change color each time they are repainted,to a random color, just to make it more fun.');
 	console.log('\nYou may call window.opsRing.redrawNodes to change nodes to your pleasure.');
-	console.log('Sample use with input: window.opsRing.redrawNodes(["0", "85070591730234615865843651857942052864"])');
+	console.log('Sample use with input:\nopsRing.redrawNodes(["0", "85070591730234615865843651857942052864"])');
 
 	// -------------------------------- API ---------------------------------------
 	// expose API to window environment
@@ -181,7 +181,7 @@
 
 	var GRAPH_RING_RADIUS_MULTIPLIER = __webpack_require__(8).GRAPH_RING_RADIUS_MULTIPLIER;
 
-	var handleSvgClick = __webpack_require__(18);
+	var handleSvgClick = __webpack_require__(9);
 
 	/**
 	 *
@@ -10923,11 +10923,44 @@
 
 /***/ },
 /* 9 */
+/***/ function(module, exports) {
+
+	/**
+	 * Attach event so that when we click the svg element, we log all the nodes
+	 * including nodes underneath.
+	 * Credits to Ṣhmiddty from stackoverflow for the algorithm
+	 * for finding the rest of the elementFromPoint after click
+	 * http://stackoverflow.com/questions/12847775/javascript-jquery-get-all-divs-location-at-x-y-forwarding-touches
+	 */
+	module.exports = function(event){
+	     var x = event.pageX, y = event.pageY;
+	     var allElementsClicked = [];
+
+	     var element = document.elementFromPoint(x,y);
+	     while(element && element.tagName != "BODY" && element.tagName != "HTML"){
+
+	       if(element.nodeName === 'circle' && element.className.baseVal !== 'ring') {
+	         console.log('Token: ', element.className.baseVal.replace('node',''));
+	       }
+
+	       allElementsClicked.push(element);
+	       element.style.visibility = "hidden";       // no flickering and no infinite :)
+	       element = document.elementFromPoint(x,y);
+	     }
+
+	     for(var i = 0; i < allElementsClicked.length; i++){
+	         allElementsClicked[i].style.visibility = "visible";
+	     }
+	 }
+
+
+/***/ },
+/* 10 */
 /***/ function(module, exports, __webpack_require__) {
 
 	
 	var assert = __webpack_require__(3);
-	var drawNode = __webpack_require__(10);
+	var drawNode = __webpack_require__(11);
 
 	/**
 	 * Function that calls drawNode and draws all nodes
@@ -10950,7 +10983,7 @@
 
 
 /***/ },
-/* 10 */
+/* 11 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -10965,11 +10998,11 @@
 
 	var assert = __webpack_require__(3);         // node assertion library- in the browser!
 	var d3 = __webpack_require__(2);                 // Used to create svg graphs
-	var randomRGB = __webpack_require__(11);         // Generate random colors for the node
+	var randomRGB = __webpack_require__(12);         // Generate random colors for the node
 
 	// ------------------------------ lib imports ----------------------------------
 
-	var getRatioOfToken = __webpack_require__(12);
+	var getRatioOfToken = __webpack_require__(13);
 
 	// ----------------------------- file globals ----------------------------------
 
@@ -11055,7 +11088,7 @@
 
 
 /***/ },
-/* 11 */
+/* 12 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// randomColor by David Merfield under the MIT license
@@ -11466,13 +11499,13 @@
 	}));
 
 /***/ },
-/* 12 */
+/* 13 */
 /***/ function(module, exports, __webpack_require__) {
 
 	
 	// ------------------------------ imports --------------------------------------
 
-	var BigNumber = __webpack_require__(16).n; // to work with BIG numbers in javascript :)
+	var BigNumber = __webpack_require__(14).n; // to work with BIG numbers in javascript :)
 	// Supported BigNumber methods: add/plus, minus/subtract,
 	// multiply/mult, divide/div, power/pow, mod,
 	// equals, lt, lte, gt, gte, isZero, abs
@@ -11537,121 +11570,14 @@
 
 
 /***/ },
-/* 13 */
-/***/ function(module, exports) {
-
-	/**
-	 * This function removes all nodes from the svg, to prepare to add new ones with
-	 * different token values.
-	 *
-	 * @author Joel Quiles
-	 * @since 2015-Nov-16
-	 */
-
-	module.exports = function() {
-	  var nodes = document.querySelectorAll('circle:not(.ring)');
-	  if(nodes && nodes.length) {
-	    for(var i in nodes) {
-	      if(nodes.hasOwnProperty(i)) {
-	        // remove click listener. just in case
-	        nodes[i].removeEventListener('click');
-	        // remove node from parent svg -> g element
-	        nodes[i].parentNode.removeChild(nodes[i]);
-	      }
-	    }
-	  }
-	}
-
-
-/***/ },
 /* 14 */
-/***/ function(module, exports) {
+/***/ function(module, exports, __webpack_require__) {
 
-	/**
-	 * Receives a node string, like the one from the input text area, given the format
-	 * from the specifications. It cleans up this input and stores into an array
-	 *
-	 * Example:
-	 *
-	 * Text area's contents are: "0", "357645765467"
-
-	 * If we don't clean the data, the array might turn out to be:
-	 * [' "4545" ', ' " 4" ']
-	 * etc
-	 *
-	 * Thus, this fuction returns it like so:
-	 *
-	 * ['4545', '4']  // with no spaces, commas, or quote characters
-	 *
-	 *
-	 * @param {!Object} nodeListTa reference to the text area DOM element
-	 * @returns array of entered strings from text area
-	 *
-	 * @author Joel Quiles
-	 * @since 2015-Nov-16
-	 */
-	module.exports = function (nodesString) {
-
-	  // TODO: validate that input is good with a regex
-	  // TODO: if it isn't, return null
-	  // TODO: use regex to validate that input is of format ```"0", "485745"```,
-	  // basically a list of numbers as strings, separated by commas.
-
-	  var regexQuotes = new RegExp('"', 'g') ;
-	  var regexWhiteSpace = new RegExp(" ", 'g') ;
-	  var regexEnter = new RegExp("↵", 'g');
-	  var regexEnterN = new RegExp("\n", 'g');
-
-	  var resultArray = nodesString
-	    .replace(regexQuotes,"")
-	    .replace(regexWhiteSpace,"")
-	    .replace(regexEnter,"")
-	    .replace(regexEnterN,"")
-	    .split(",");
-
-	  return resultArray;
-	}
+	module.exports = __webpack_require__(15);
 
 
 /***/ },
 /* 15 */
-/***/ function(module, exports) {
-
-	module.exports = function(document, window, container, padding) {
-
-	  var sidebar = document.querySelector('.sidebar');
-
-	  var sideBarWidth = sidebar.offsetWidth;
-	  var sideBarHeight = sidebar.offsetHeight;
-	  var windowWidth = window.innerWidth;
-	  var windowHeight = window.innerHeight;
-
-	  var containerHeight = container.offsetHeight;
-	  var containerWidth = container.offsetrWidth;
-
-	  if(containerWidth < windowWidth - sideBarWidth - padding) {
-	    container.style.width = windowWidth - sideBarWidth - padding + "px";
-	  }
-
-	  if(containerHeight > containerWidth) {
-	    container.style.height = containerWidth + "px";
-	  }
-	  if(containerWidth > containerHeight) {
-	    container.style.width = containerHeight + "px";
-	  }
-
-	}
-
-
-/***/ },
-/* 16 */
-/***/ function(module, exports, __webpack_require__) {
-
-	module.exports = __webpack_require__(17);
-
-
-/***/ },
-/* 17 */
 /***/ function(module, exports) {
 
 	/*!
@@ -12036,36 +11962,119 @@
 
 
 /***/ },
-/* 18 */
+/* 16 */
 /***/ function(module, exports) {
 
 	/**
-	 * Attach event so that when we click the svg element, we log all the nodes
-	 * including nodes underneath.
-	 * Credits to Ṣhmiddty from stackoverflow for the algorithm
-	 * for finding the rest of the elementFromPoint after click
-	 * http://stackoverflow.com/questions/12847775/javascript-jquery-get-all-divs-location-at-x-y-forwarding-touches
+	 * This function removes all nodes from the svg, to prepare to add new ones with
+	 * different token values.
+	 *
+	 * @author Joel Quiles
+	 * @since 2015-Nov-16
 	 */
-	module.exports = function(event){
-	     var x = event.pageX, y = event.pageY;
-	     var allElementsClicked = [];
 
-	     var element = document.elementFromPoint(x,y);
-	     while(element && element.tagName != "BODY" && element.tagName != "HTML"){
+	module.exports = function() {
 
-	       if(element.nodeName === 'circle' && element.className.baseVal !== 'ring') {
-	         console.log('Token: ', element.className.baseVal.replace('node',''));
-	       }
+	  var nodes = document.querySelectorAll('circle:not(.ring)');
 
-	       allElementsClicked.push(element);
-	       element.style.visibility = "hidden";       // no flickering and no infinite :)
-	       element = document.elementFromPoint(x,y);
-	     }
+	  if(nodes && nodes.length) {
 
-	     for(var i = 0; i < allElementsClicked.length; i++){
-	         allElementsClicked[i].style.visibility = "visible";
-	     }
-	 }
+	    for(var i in nodes) {
+	      if(nodes.hasOwnProperty(i)) {
+	        // TODO: remove click listener. just in case
+	        // nodes[i].removeEventListener('click');
+	        // remove node from parent svg -> g element
+	        try{
+	          nodes[i].parentNode.removeChild(nodes[i]);
+	        } catch(e) {
+	          console.error('Unable to remove child nodes.', e);
+	        }
+	      }
+	    }
+
+	  }
+
+	}
+
+
+/***/ },
+/* 17 */
+/***/ function(module, exports) {
+
+	/**
+	 * Receives a node string, like the one from the input text area, given the format
+	 * from the specifications. It cleans up this input and stores into an array
+	 *
+	 * Example:
+	 *
+	 * Text area's contents are: "0", "357645765467"
+
+	 * If we don't clean the data, the array might turn out to be:
+	 * [' "4545" ', ' " 4" ']
+	 * etc
+	 *
+	 * Thus, this fuction returns it like so:
+	 *
+	 * ['4545', '4']  // with no spaces, commas, or quote characters
+	 *
+	 *
+	 * @param {!Object} nodeListTa reference to the text area DOM element
+	 * @returns array of entered strings from text area
+	 *
+	 * @author Joel Quiles
+	 * @since 2015-Nov-16
+	 */
+	module.exports = function (nodesString) {
+
+	  // TODO: validate that input is good with a regex
+	  // TODO: if it isn't, return null
+	  // TODO: use regex to validate that input is of format ```"0", "485745"```,
+	  // basically a list of numbers as strings, separated by commas.
+
+	  var regexQuotes = new RegExp('"', 'g') ;
+	  var regexWhiteSpace = new RegExp(" ", 'g') ;
+	  var regexEnter = new RegExp("↵", 'g');
+	  var regexEnterN = new RegExp("\n", 'g');
+
+	  var resultArray = nodesString
+	    .replace(regexQuotes,"")
+	    .replace(regexWhiteSpace,"")
+	    .replace(regexEnter,"")
+	    .replace(regexEnterN,"")
+	    .split(",");
+
+	  return resultArray;
+	}
+
+
+/***/ },
+/* 18 */
+/***/ function(module, exports) {
+
+	module.exports = function(document, window, container, padding) {
+
+	  var sidebar = document.querySelector('.sidebar');
+
+	  var sideBarWidth = sidebar.offsetWidth;
+	  var sideBarHeight = sidebar.offsetHeight;
+	  var windowWidth = window.innerWidth;
+	  var windowHeight = window.innerHeight;
+
+	  var containerHeight = container.offsetHeight;
+	  var containerWidth = container.offsetrWidth;
+
+	  if(containerWidth < windowWidth - sideBarWidth - padding) {
+	    container.style.width = windowWidth - sideBarWidth - padding + "px";
+	  }
+
+	  if(containerHeight > containerWidth) {
+	    container.style.height = containerWidth + "px";
+	  }
+	  if(containerWidth > containerHeight) {
+	    container.style.width = containerHeight + "px";
+	  }
+
+	}
 
 
 /***/ }
