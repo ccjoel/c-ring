@@ -6,15 +6,21 @@
  * http://stackoverflow.com/questions/12847775/javascript-jquery-get-all-divs-location-at-x-y-forwarding-touches
  */
 module.exports = function(event) {
+
+  console.log('nodes under cursor');
+
   var x = event.pageX,
     y = event.pageY;
   var allElementsClicked = [];
+
+  var nodesClicked = [];
 
   var element = document.elementFromPoint(x, y);
   while (element && element.tagName != "BODY" && element.tagName != "HTML") {
 
     if (element.nodeName === 'circle' && element.className.baseVal !== 'ring') {
-      console.log('Token: ', element.className.baseVal.replace('node', ''));
+      nodesClicked.push(element);
+      // console.log('Token: ', element.className.baseVal.replace('node', ''));
     }
 
     allElementsClicked.push(element);
@@ -23,39 +29,8 @@ module.exports = function(event) {
   }
 
   for (var i = 0; i < allElementsClicked.length; i++) {
-    allElementsClicked[i].style.visibility = "visible";
-  }
-}
-
-/**
- * TODO
- * cool special effect when near the nodes
- */
-function moveOverlappingNodesOnHover(event) {
-  var x = event.pageX,
-    y = event.pageY;
-  var allElementsClicked = [];
-
-  var circlesClicked = [];
-
-  var element = document.elementFromPoint(x, y);
-  while (element && element.tagName != "BODY" && element.tagName != "HTML") {
-
-    if (element.nodeName === 'circle' && element.className.baseVal !== 'ring') {
-      circlesClicked.push(element);
-    }
-
-    allElementsClicked.push(element);
-    element.style.visibility = "hidden"; // no flickering and no infinite
-    element = document.elementFromPoint(x, y);
+    allElementsClicked[i].style.visibility = "";
   }
 
-  for (var i = 0; i < allElementsClicked.length; i++) {
-    allElementsClicked[i].style.visibility = "visible";
-  }
-
-  // TODO transorm circlesClicked elements...
-
-  // this is going to be hard
-
+  console.log('Tokens: ', nodesClicked);
 }

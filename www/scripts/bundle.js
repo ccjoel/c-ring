@@ -103,7 +103,19 @@
 
 	// Insert some default values into input box, so that we can see a graph
 	// at the start of the app.
-	nodeListTA.value = '"0", "85070591730234615865843651857942052864"';
+	nodeListTA.value =
+	'"170141183460469231731687303715884105728", "85070591730234615865843651857942052864",' +
+	'"42535295865117307932921825928971026432", "21267647932558653966460912964485513216",' +
+	'"10633823966279326983230456482242756608",'+
+	'"5316911983139663491615228241121378304", '+
+	'"2658455991569831745807614120560689152", '+
+	'"1329227995784915872903807060280344576", '+
+	'"85070591730234615865843651857942052864",'+
+	'"106338239662793269832304564822427566080",'+
+	'"127605887595351923798765477786913079296",'+
+	'"1208925819614629174706176",'+
+	'"37778931862957161709568", '+
+	'"18889465931478580854785", "0"';
 
 	// Create ring and find dimensions
 	var configuration = setupGraph(container.offsetWidth, container.offsetHeight - CLUSTER_NODES_TITLE_HEIGHT_USE, '#ring-container');
@@ -172,6 +184,7 @@
 	  configuration = setupGraph(container.offsetWidth, container.offsetHeight - CLUSTER_NODES_TITLE_HEIGHT_USE, '#ring-container');
 	  // call draw again with last values
 	  window.opsRing.redrawNodes(lastNodesValue);
+	  document.querySelector('#filter-input').value = ""; // also, clear filter value
 	});
 
 	// Filter boxes functionality
@@ -188,7 +201,7 @@
 
 	var GRAPH_RING_RADIUS_MULTIPLIER = __webpack_require__(8).GRAPH_RING_RADIUS_MULTIPLIER;
 
-	var handleSvgClick = __webpack_require__(9);
+	var nodesUnderCursor = __webpack_require__(9);
 
 	/**
 	 *
@@ -238,7 +251,7 @@
 	  );
 
 	  // When you click an svg i will console.log all the tokens of nodes under the click
-	  document.querySelector('svg').addEventListener('click', handleSvgClick);
+	  document.querySelector('svg').addEventListener('mouseover', nodesUnderCursor);
 
 	  return {
 	    svg: svg,
@@ -9822,7 +9835,6 @@
 	  GRAPH_NODE_RADIUS_MULTIPLIER: 16
 	};
 
-
 	var testValues = [
 	  "170141183460469231731687303715884105728", // 2^127
 	  "85070591730234615865843651857942052864",  // 2^126
@@ -9832,6 +9844,9 @@
 	  "5316911983139663491615228241121378304",   // 2^122
 	  "2658455991569831745807614120560689152",   // 2^121
 	  "1329227995784915872903807060280344576",   // 2^120
+	  "85070591730234615865843651857942052864",  // 2^124 * 4
+	  "106338239662793269832304564822427566080",  // 2^124 * 5
+	  "127605887595351923798765477786913079296",  // 2^124 * 6
 	  '1208925819614629174706176',               // 2^80
 	  "37778931862957161709568",                 // 2^75
 	  "18889465931478580854785",                 // 2^74+1 == 2^127 - 2^53-1
@@ -9851,15 +9866,21 @@
 	 * http://stackoverflow.com/questions/12847775/javascript-jquery-get-all-divs-location-at-x-y-forwarding-touches
 	 */
 	module.exports = function(event) {
+
+	  console.log('nodes under cursor');
+
 	  var x = event.pageX,
 	    y = event.pageY;
 	  var allElementsClicked = [];
+
+	  var nodesClicked = [];
 
 	  var element = document.elementFromPoint(x, y);
 	  while (element && element.tagName != "BODY" && element.tagName != "HTML") {
 
 	    if (element.nodeName === 'circle' && element.className.baseVal !== 'ring') {
-	      console.log('Token: ', element.className.baseVal.replace('node', ''));
+	      nodesClicked.push(element);
+	      // console.log('Token: ', element.className.baseVal.replace('node', ''));
 	    }
 
 	    allElementsClicked.push(element);
@@ -9868,41 +9889,10 @@
 	  }
 
 	  for (var i = 0; i < allElementsClicked.length; i++) {
-	    allElementsClicked[i].style.visibility = "visible";
-	  }
-	}
-
-	/**
-	 * TODO
-	 * cool special effect when near the nodes
-	 */
-	function moveOverlappingNodesOnHover(event) {
-	  var x = event.pageX,
-	    y = event.pageY;
-	  var allElementsClicked = [];
-
-	  var circlesClicked = [];
-
-	  var element = document.elementFromPoint(x, y);
-	  while (element && element.tagName != "BODY" && element.tagName != "HTML") {
-
-	    if (element.nodeName === 'circle' && element.className.baseVal !== 'ring') {
-	      circlesClicked.push(element);
-	    }
-
-	    allElementsClicked.push(element);
-	    element.style.visibility = "hidden"; // no flickering and no infinite
-	    element = document.elementFromPoint(x, y);
+	    allElementsClicked[i].style.visibility = "";
 	  }
 
-	  for (var i = 0; i < allElementsClicked.length; i++) {
-	    allElementsClicked[i].style.visibility = "visible";
-	  }
-
-	  // TODO transorm circlesClicked elements...
-
-	  // this is going to be hard
-
+	  console.log('Tokens: ', nodesClicked);
 	}
 
 
@@ -9943,13 +9933,13 @@
 	 * This is part of a small library that creates a replica of the OpsCenter ring
 	 * view given a list of cluster nodes
 	 * @author Joel Quiles
-	 * @since 2015-Nov-16
+	 * @since 2015-Nov-17
 	 */
 
 	// ------------------------------ NPM IMPORTS ----------------------------------
 
-	var assert = __webpack_require__(21).assert;         // node assertion library- in the browser!
-	var d3 = __webpack_require__(2);                 // Used to create svg graphs
+	var assert = __webpack_require__(21).assert;       // node assertion library- in the browser!
+	var d3 = __webpack_require__(2);                         // Used to create svg graphs
 	var randomRGB = __webpack_require__(12);         // Generate random colors for the node
 
 	// ------------------------------ lib imports ----------------------------------
@@ -10034,7 +10024,7 @@
 
 	  // previously only logged one token
 	  document.querySelector(".node"+nodeToken).addEventListener('click', function(){
-	    console.log('Clicked: '+ nodeToken);
+	    console.log('Node Clicked Token: ', nodeToken);
 	  });
 	}
 

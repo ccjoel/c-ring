@@ -3,13 +3,13 @@
  * This is part of a small library that creates a replica of the OpsCenter ring
  * view given a list of cluster nodes
  * @author Joel Quiles
- * @since 2015-Nov-16
+ * @since 2015-Nov-17
  */
 
 // ------------------------------ NPM IMPORTS ----------------------------------
 
-var assert = require('../assert').assert;         // node assertion library- in the browser!
-var d3 = require('d3');                 // Used to create svg graphs
+var assert = require('../assert').assert;       // node assertion library- in the browser!
+var d3 = require('d3');                         // Used to create svg graphs
 var randomRGB = require('randomcolor');         // Generate random colors for the node
 
 // ------------------------------ lib imports ----------------------------------
@@ -94,6 +94,6 @@ module.exports = function (nodeToken, configuration) {
 
   // previously only logged one token
   document.querySelector(".node"+nodeToken).addEventListener('click', function(){
-    console.log('Clicked: '+ nodeToken);
+    console.log('Node Clicked Token: ', nodeToken);
   });
 }

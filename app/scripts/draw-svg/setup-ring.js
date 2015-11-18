@@ -3,7 +3,7 @@ var assert = require('../assert').assert;
 
 var GRAPH_RING_RADIUS_MULTIPLIER = require('../constants').GRAPH_RING_RADIUS_MULTIPLIER;
 
-var handleSvgClick = require('../dom-handlers/nodes-under-cursor');
+var nodesUnderCursor = require('../dom-handlers/nodes-under-cursor');
 
 /**
  *
@@ -53,7 +53,7 @@ module.exports = function(width, height, svgTargetElementId) {
   );
 
   // When you click an svg i will console.log all the tokens of nodes under the click
-  document.querySelector('svg').addEventListener('click', handleSvgClick);
+  document.querySelector('svg').addEventListener('mouseover', nodesUnderCursor);
 
   return {
     svg: svg,
