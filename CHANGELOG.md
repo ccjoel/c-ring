@@ -1,4 +1,4 @@
-# 0.0.3 2015-11-17
+# 0.0.5 2015-11-17
 
 ##### Added
  - Nodes mode around when you over over them if they overlap each other
