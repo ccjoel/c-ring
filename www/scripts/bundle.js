@@ -104,8 +104,9 @@
 	// Insert some default values into input box, so that we can see a graph
 	// at the start of the app.
 	nodeListTA.value =
-	'"170141183460469231731687303715884105728", "85070591730234615865843651857942052864",' +
-	'"42535295865117307932921825928971026432", "21267647932558653966460912964485513216",' +
+	'"170141183460469231731687303715884105728",' +
+	'"42535295865117307932921825928971026432",' +
+	'"21267647932558653966460912964485513216",' +
 	'"10633823966279326983230456482242756608",'+
 	'"5316911983139663491615228241121378304", '+
 	'"2658455991569831745807614120560689152", '+
@@ -9866,8 +9867,6 @@
 	 */
 	module.exports = function(event) {
 
-	  console.log('nodes under cursor');
-
 	  var x = event.pageX,
 	    y = event.pageY;
 	  var allElementsClicked = [];
@@ -9879,7 +9878,6 @@
 
 	    if (element.nodeName === 'circle' && element.className.baseVal !== 'ring') {
 	      nodesUnderneath.push(element);
-	      // console.log('Token: ', element.className.baseVal.replace('node', ''));
 	    }
 
 	    allElementsClicked.push(element);
@@ -9893,7 +9891,6 @@
 
 	  if(nodesUnderneath.length > 2) {
 	    // there are two or more tokens under mouse
-	    console.log('All tokens: ', nodesUnderneath);
 	    nodesUnderneath.forEach(function(node) {
 	      node.spaceOut();
 	    })
@@ -9984,12 +9981,12 @@
 	  // validate configuration
 	  assert(!!configuration.svg && !!configuration.radius, 'invalid configuration provided in draw-node');
 
+	  // These configurations created in setup-ring.js
 	  var radius = configuration.radius;
 	  var svg = configuration.svg;
-
-	  // Trivia night: the plural form of radius can be either radii or radiuses
+	  // Playing with ratio to get nice node size - change in constants.js
 	  var nodeTokenArcRadius = radius / GRAPH_RING_RADIUS_MULTIPLIER;
-	  var nodeRadius = radius / GRAPH_NODE_RADIUS_MULTIPLIER; // 18 was a magic number, playing with a ratio that made sense
+	  var nodeRadius = radius / GRAPH_NODE_RADIUS_MULTIPLIER;
 
 	  // Current position of node (an arc around the ring), with bigger arc when
 	  // bigger ratio to the max allowed token
@@ -9997,12 +9994,11 @@
 	    .startAngle(0)
 	    .endAngle(0);
 
-	  var ratio = getRatioOfToken(nodeToken); // ratio between the provided node token value and max token
+	  // ratio between the provided node token value and max token
+	  var ratio = getRatioOfToken(nodeToken);
 
-	  if (ratio === 0) { // unable to divide by 0, we know the ratio by now
-	    ratio = 1.0;
-	  }
-
+	// unable to divide by 0. If it's 0 then it's ~almost the same as 1
+	  ratio = (ratio === 0) ? 1.0 : ratio;
 	  // position of circle as radians
 	  var positionInCircle = 2 * Math.PI / ratio;
 
@@ -10026,22 +10022,44 @@
 	    .attr("transform", "translate(" + nodeTokenArcRadius * y + "," + -nodeTokenArcRadius * x + ")")
 	    .style("fill", randomColor)
 
-	  // previously only logged one token
+	  // previously added token normal javascript reference
 	  var node = document.querySelector(".node" + nodeToken)
 
+	  // Add click listener in case
 	  node.addEventListener('click', function() {
 	    console.log('Node Clicked Token: ', nodeToken);
 	  });
 
+	  /*
+	   * Space out tokens when they are on top of each other*/
 	  node.spaceOut = function() {
-	    // TODO
-	    console.log('spaceOut!');
+	    // TODO: pass element so that we don't need to use a d3 selector
+	    // TODO: Better algorithm. This one is super simple for demo/interview/exercise
+	    var constantPositionTranform = 50;
+	    var randomX = getRandomArbitrary(-120, 120) > 80 ? 1 : -1;
+	    var randomY = getRandomArbitrary(-30, 30) > 15 ? 1 : -1;
+	    d3.select(".node" + nodeToken)
+	      .attr("transform", "translate(" +
+	        (nodeTokenArcRadius +
+	        (constantPositionTranform*randomY)) * y +
+	        "," +
+	        (-nodeTokenArcRadius - (constantPositionTranform*randomX)) * x +
+	        ")");
+	  };
 
-	    d3.select(".node"+nodeToken)
-	    .attr("transform", "translate(" + nodeTokenArcRadius * y + "," + -nodeTokenArcRadius * x + ")");
-
+	  node.spaceBackIn = function() {
+	    d3.select(".node" + nodeToken)
+	      .attr("transform", "translate(" +
+	        nodeTokenArcRadius * y + "," + -nodeTokenArcRadius * x + ")")
 	  }
 
+	} // end draw-node
+
+	// from : https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/random
+	// Returns a random number between min (inclusive) and max (exclusive)
+	// Original name: getRandomArbitrary
+	function getRandomArbitrary(min, max) {
+	  return Math.random() * (max - min) + min;
 	}
 
 
@@ -11091,9 +11109,10 @@
 
 	  var input = document.querySelector('#filter-input');
 	  var cleanInputValue = cleanInput(input.value);
-	  var circleTarget = document.querySelector('.node'+cleanInputValue);
+	  // var circleTarget = document.querySelector('.node'+cleanInputValue);
 	  var nodesToHide = document.querySelectorAll('.node:not(.node'+cleanInputValue+')');
 
+	  reorganizeNodes();
 	  removeInvisibleClass(); // just preventing adding double 'invisible' classes
 
 	  for (var i in nodesToHide) {
@@ -11103,6 +11122,19 @@
 	  }
 
 	};
+
+	/**
+	* If you have moved the nodes while govering groups, we need to restore their position
+	*/
+	function reorganizeNodes() {
+	  var allNodes = document.querySelectorAll('.node');
+	  for (var i in allNodes) {
+	    if(allNodes.hasOwnProperty(i) && i !== 'length') {
+	      allNodes[i].spaceBackIn();
+	    }
+	  }
+	}
+
 	/**
 	 * Clear function is a dom event handler. The only use case for now, is to
 	 * clear previously filtered nodes.

@@ -1,4 +1,7 @@
-# Unreleased
+# 0.0.3 2015-11-17
+
+##### Added
+ - Nodes mode around when you over over them if they overlap each other
 
 ##### Changed
 
@@ -6,8 +9,8 @@
 
 ##### TODO
 
-- better change size on browser resize
-- Do something better about the overlapping nodes, to distinguish them better
+- Better algorithm for change size on browser resize
+- Better algorithm for the overlapping nodes, to distinguish them better
 
 # 0.0.1 2015-11-17
 

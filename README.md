@@ -46,11 +46,18 @@ You may enter one token value you know is in the ring into the filter box. When 
 click filter (click only for now, press enter on TODO) it will only show that node.
 You may press the clear button to clear the filter and show all nodes again.
 
+You can notice when nodes overlap by seeing their transparency go away. The more
+nodes overlap each other, the less transparent these grouped nodes will seem.
+
+If you hover over the top part of these less transparent nodes,
+they will move a little bit so that you may be able to click and get their token
+value better (if you don't like using the filter).
+
 Note: You will need an internet connection to run the app. It loads a google web font.
 If you don't have internet, it will take its time to try to load the font,
 and then it will boot with the rest of the application running.
 
-# Project files:
+# Project files
 
 Actual dev code:
 ```
@@ -114,7 +121,7 @@ To be able to run npm install, you will need:
  - Usually bundled when installing nodejs
 - `webpack`: install with `npm install -g webpack`, after installing `npm`
 
-## Tested on these browsers:
+## Tested on these browsers
 
 - Google Chrome - Version 46.0.2490.80 (64-bit) - Mac OSX
 - Chromium - Version 47.0.2526.16 (64-bit) - Gentoo Linux
@@ -131,7 +138,7 @@ Known issues:
 
 For more compatibilities by feature (svg), see [1] under READM appendix.
 
-#### Technologies Used:
+#### Technologies Used
 - `D3js`
 - `Susy SASS Grids`
 - `Breakpoint Media queries`

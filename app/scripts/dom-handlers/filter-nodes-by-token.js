@@ -13,9 +13,10 @@ exports.filter = function(e) {
 
   var input = document.querySelector('#filter-input');
   var cleanInputValue = cleanInput(input.value);
-  var circleTarget = document.querySelector('.node'+cleanInputValue);
+  // var circleTarget = document.querySelector('.node'+cleanInputValue);
   var nodesToHide = document.querySelectorAll('.node:not(.node'+cleanInputValue+')');
 
+  reorganizeNodes();
   removeInvisibleClass(); // just preventing adding double 'invisible' classes
 
   for (var i in nodesToHide) {
@@ -25,6 +26,19 @@ exports.filter = function(e) {
   }
 
 };
+
+/**
+* If you have moved the nodes while govering groups, we need to restore their position
+*/
+function reorganizeNodes() {
+  var allNodes = document.querySelectorAll('.node');
+  for (var i in allNodes) {
+    if(allNodes.hasOwnProperty(i) && i !== 'length') {
+      allNodes[i].spaceBackIn();
+    }
+  }
+}
+
 /**
  * Clear function is a dom event handler. The only use case for now, is to
  * clear previously filtered nodes.

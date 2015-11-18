@@ -7,8 +7,6 @@
  */
 module.exports = function(event) {
 
-  console.log('nodes under cursor');
-
   var x = event.pageX,
     y = event.pageY;
   var allElementsClicked = [];
@@ -20,7 +18,6 @@ module.exports = function(event) {
 
     if (element.nodeName === 'circle' && element.className.baseVal !== 'ring') {
       nodesUnderneath.push(element);
-      // console.log('Token: ', element.className.baseVal.replace('node', ''));
     }
 
     allElementsClicked.push(element);
@@ -34,7 +31,6 @@ module.exports = function(event) {
 
   if(nodesUnderneath.length > 2) {
     // there are two or more tokens under mouse
-    console.log('All tokens: ', nodesUnderneath);
     nodesUnderneath.forEach(function(node) {
       node.spaceOut();
     })
