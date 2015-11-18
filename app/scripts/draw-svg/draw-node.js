@@ -60,7 +60,7 @@ module.exports = function (nodeToken, configuration) {
 
   // insert node into svg, positioning at ring arc.
   svg.append("circle")        // nodes are visualized as circles in the ring view
-    .attr("class", "node"+nodeToken)
+    .attr("class", "node"+nodeToken+" node")
     .attr("r", nodeRadius)    // Set radius of the node
     // move node's center to the ring's arc radius
     .attr("transform", "translate(0," + -nodeTokenArcRadius + ")")

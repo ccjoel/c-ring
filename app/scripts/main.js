@@ -15,7 +15,7 @@
 // ---------------------------- constants --------------------------------------
 
 var CLUSTER_NODES_TITLE_HEIGHT_USE = 60;
-
+var CONTAINER_PADDING = 15;
 
 // ---------------------------- lib imports ------------------------------------
 
@@ -25,6 +25,9 @@ var drawNodes = require('./draw-svg/draw-all-nodes');
 var clearPreviousNodes = require('./helpers/clear-nodes');
 var createArrayFromTextAreaTokens = require('./helpers/array-from-tokens');
 var resizeContainer = require('./helpers/resize-svg-container');
+var filterNodesByToken = require('./dom-handlers/filter-nodes-by-token').filter;
+var clearFilter = require('./dom-handlers/filter-nodes-by-token').clear;
+
 
 // ---------------------------- DOM elements -----------------------------------
 
@@ -35,7 +38,8 @@ var container = document.querySelector('main');
 var updateBtn = document.querySelector('#update-ring-btn');
 var ringContainer = document.querySelector('#ring-container');
 
-var CONTAINER_PADDING = 15;
+var filterBtn = document.querySelector('#filter-button');
+var filterClearBtn = document.querySelector('#clear-button');
 
 //normalize main container dimensions on start
 function normalizeDimensions() {
@@ -88,9 +92,8 @@ window.opsRing = {
 // -------------------------- DOM event handlers -------------------------------
 
 
-// handle button click event
+// handle update button click event
 updateBtn.addEventListener('click', function(e) {
-
   try {
 
     clearPreviousNodes(); // remove all prev nodes from svg
@@ -124,3 +127,6 @@ window.addEventListener('resize', function() {
   // call draw again with last values
   window.opsRing.redrawNodes(lastNodesValue);
 });
+
+filterBtn.addEventListener('click', filterNodesByToken);
+filterClearBtn.addEventListener('click', clearFilter);

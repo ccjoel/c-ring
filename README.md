@@ -114,6 +114,7 @@ folder
 - `Breakpoint Media queries`
 - `Roboto` Font from Google
 - `BigNumber` npm package
+- Did **not** use jQuery. Should have used jQuery.
 
 #### Notes
 

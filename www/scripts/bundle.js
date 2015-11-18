@@ -61,7 +61,7 @@
 	// ---------------------------- constants --------------------------------------
 
 	var CLUSTER_NODES_TITLE_HEIGHT_USE = 60;
-
+	var CONTAINER_PADDING = 15;
 
 	// ---------------------------- lib imports ------------------------------------
 
@@ -71,6 +71,9 @@
 	var clearPreviousNodes = __webpack_require__(16);
 	var createArrayFromTextAreaTokens = __webpack_require__(17);
 	var resizeContainer = __webpack_require__(18);
+	var filterNodesByToken = __webpack_require__(20).filter;
+	var clearFilter = __webpack_require__(20).clear;
+
 
 	// ---------------------------- DOM elements -----------------------------------
 
@@ -81,7 +84,8 @@
 	var updateBtn = document.querySelector('#update-ring-btn');
 	var ringContainer = document.querySelector('#ring-container');
 
-	var CONTAINER_PADDING = 15;
+	var filterBtn = document.querySelector('#filter-button');
+	var filterClearBtn = document.querySelector('#clear-button');
 
 	//normalize main container dimensions on start
 	function normalizeDimensions() {
@@ -134,9 +138,8 @@
 	// -------------------------- DOM event handlers -------------------------------
 
 
-	// handle button click event
+	// handle update button click event
 	updateBtn.addEventListener('click', function(e) {
-
 	  try {
 
 	    clearPreviousNodes(); // remove all prev nodes from svg
@@ -170,6 +173,9 @@
 	  // call draw again with last values
 	  window.opsRing.redrawNodes(lastNodesValue);
 	});
+
+	filterBtn.addEventListener('click', filterNodesByToken);
+	filterClearBtn.addEventListener('click', clearFilter);
 
 
 /***/ },
@@ -11048,7 +11054,7 @@
 
 	  // insert node into svg, positioning at ring arc.
 	  svg.append("circle")        // nodes are visualized as circles in the ring view
-	    .attr("class", "node"+nodeToken)
+	    .attr("class", "node"+nodeToken+" node")
 	    .attr("r", nodeRadius)    // Set radius of the node
 	    // move node's center to the ring's arc radius
 	    .attr("transform", "translate(0," + -nodeTokenArcRadius + ")")
@@ -11980,9 +11986,9 @@
 	  if(nodes && nodes.length) {
 
 	    for(var i in nodes) {
-	      if(nodes.hasOwnProperty(i) && nodes[i] !== 'length') {
-	        // TODO: remove click listener. just in case
-	        // nodes[i].removeEventListener('click');
+	      if(nodes.hasOwnProperty(i) && i !== 'length') { // safari insists on adding this property
+	        // remove click listener. just in case
+	        nodes[i].removeEventListener('click');
 	        // remove node from parent svg -> g element
 	        try{
 	          nodes[i].parentNode.removeChild(nodes[i]);
@@ -12073,6 +12079,45 @@
 	  if(containerWidth > containerHeight) {
 	    container.style.width = containerHeight + "px";
 	  }
+
+	}
+
+
+/***/ },
+/* 19 */,
+/* 20 */
+/***/ function(module, exports) {
+
+	
+	exports.filter = function(e) {
+
+	  var input = document.querySelector('#filter-input');
+	  var circleTarget = document.querySelector('.node'+input.value);
+	  var nodesToHide = document.querySelectorAll('.node:not(.node'+input.value+')');
+
+	  for (var i in nodesToHide) {
+	    if(nodesToHide.hasOwnProperty(i) && i !== 'length') {
+	      nodesToHide[i].className.baseVal = nodesToHide[i].className.baseVal + ' invisible';
+	    }
+	  }
+
+	};
+
+	exports.clear = function(e) {
+
+	  var input = document.querySelector('#filter-input');
+	  var nodes = document.querySelectorAll('.invisible');
+
+	  for (var i in nodes) {
+	    if(nodes.hasOwnProperty(i) && i !== 'length') {
+
+	      console.log('nodes[i].className.baseVal', nodes[i].className.baseVal);
+
+	      nodes[i].className.baseVal = nodes[i].className.baseVal.replace('invisible', '');
+	    }
+	  }
+
+	  input.value = "";
 
 	}
 

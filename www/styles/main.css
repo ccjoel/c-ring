@@ -421,5 +421,8 @@ footer {
   padding-top: 10px;
   padding-left: 10px; }
 
+.invisible {
+  visibility: hidden; }
+
 #ring-container {
   background-color: black; }

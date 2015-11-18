@@ -13,9 +13,9 @@ module.exports = function() {
   if(nodes && nodes.length) {
 
     for(var i in nodes) {
-      if(nodes.hasOwnProperty(i) && nodes[i] !== 'length') {
-        // TODO: remove click listener. just in case
-        // nodes[i].removeEventListener('click');
+      if(nodes.hasOwnProperty(i) && i !== 'length') { // safari insists on adding this property
+        // remove click listener. just in case
+        nodes[i].removeEventListener('click');
         // remove node from parent svg -> g element
         try{
           nodes[i].parentNode.removeChild(nodes[i]);
