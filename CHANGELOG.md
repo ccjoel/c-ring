@@ -1,7 +1,12 @@
+# 0.1.0 2015-11-17
+
+##### Fixed
+Small bug on firefox
+
 # 0.0.6 2015-11-17
 
 ##### Changed
-- Documentaiton, and exposed function name.
+- Documentation, and exposed function name.
 
 # 0.0.5 2015-11-17
 

@@ -127,12 +127,9 @@ To be able to run npm install, you will need:
 - Chromium - Version 47.0.2526.16 (64-bit) - Gentoo Linux
 - Safari - Version 9.0.1 (11601.2.7.2)
 - PhantomJs - Version 1.9.8 - Gentoo Linux
+- Mozilla Firefox - Version 41.0.1 - Mac OSX:
 
 Known issues:
-
-- Mozilla Firefox - Version 41.0.1 - Mac OSX:
- - EventListener and remove node errors. Everything works but throws additional
- programmer error messages.
 - Internet Explorer / Edge
  - Currently not tested on IE/Edge
 
