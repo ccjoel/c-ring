@@ -101,9 +101,13 @@ To be able to run npm/bower install, you will need:
 
 - Google Chrome - Version 46.0.2490.80 (64-bit) - Mac OSX
 - Chromium - Version 47.0.2526.16 (64-bit) - Gentoo Linux
-- Mozilla Firefox - Version 41.0.1 - Mac OSX
 - Safari - Version 9.0.1 (11601.2.7.2)
 - PhantomJs - Version 1.9.8 - Gentoo Linux
+
+Known issues:
+
+- Mozilla Firefox - Version 41.0.1 - Mac OSX:
+ - Firefox is not V8 based, so should replace assertion mechanism. Curerntly using V8's assert in the browser. Listed as an issue on repo.
 
 For more compatibilities by feature (svg), see the caniuse image under the `docs`
 folder

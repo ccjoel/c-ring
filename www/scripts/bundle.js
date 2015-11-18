@@ -188,7 +188,7 @@
 
 	var GRAPH_RING_RADIUS_MULTIPLIER = __webpack_require__(8).GRAPH_RING_RADIUS_MULTIPLIER;
 
-	var handleSvgClick = __webpack_require__(9);
+	var handleSvgClick = __webpack_require__(22);
 
 	/**
 	 *
@@ -205,7 +205,7 @@
 	 * @throws AssertionError when receiving wrong dimensions (width/height)
 	 *
 	 * @author Joel Quiles
-	 * @since 2015-Nov-16
+	 * @since 2015-Nov-17
 	 */
 	module.exports = function(width, height, svgTargetElementId) {
 
@@ -237,6 +237,7 @@
 	    "rgba(47, 37, 37, 0.99)"
 	  );
 
+	  // When you click an svg i will console.log all the tokens of nodes under the click
 	  document.querySelector('svg').addEventListener('click', handleSvgClick);
 
 	  return {
@@ -10929,39 +10930,7 @@
 
 
 /***/ },
-/* 9 */
-/***/ function(module, exports) {
-
-	/**
-	 * Attach event so that when we click the svg element, we log all the nodes
-	 * including nodes underneath.
-	 * Credits to Ṣhmiddty from stackoverflow for the algorithm
-	 * for finding the rest of the elementFromPoint after click
-	 * http://stackoverflow.com/questions/12847775/javascript-jquery-get-all-divs-location-at-x-y-forwarding-touches
-	 */
-	module.exports = function(event){
-	     var x = event.pageX, y = event.pageY;
-	     var allElementsClicked = [];
-
-	     var element = document.elementFromPoint(x,y);
-	     while(element && element.tagName != "BODY" && element.tagName != "HTML"){
-
-	       if(element.nodeName === 'circle' && element.className.baseVal !== 'ring') {
-	         console.log('Token: ', element.className.baseVal.replace('node',''));
-	       }
-
-	       allElementsClicked.push(element);
-	       element.style.visibility = "hidden";       // no flickering and no infinite :)
-	       element = document.elementFromPoint(x,y);
-	     }
-
-	     for(var i = 0; i < allElementsClicked.length; i++){
-	         allElementsClicked[i].style.visibility = "visible";
-	     }
-	 }
-
-
-/***/ },
+/* 9 */,
 /* 10 */
 /***/ function(module, exports, __webpack_require__) {
 
@@ -12118,7 +12087,6 @@
 
 	  for (var i in nodes) {
 	    if(nodes.hasOwnProperty(i) && i !== 'length') {
-	      console.log('nodes[i].className.baseVal', nodes[i].className.baseVal);
 	      nodes[i].className.baseVal = nodes[i].className.baseVal.replace('invisible', '').trim();
 	    }
 	  }
@@ -12146,6 +12114,39 @@
 
 	  return cleanInputValue;
 	}
+
+
+/***/ },
+/* 22 */
+/***/ function(module, exports) {
+
+	/**
+	 * Attach event so that when we click the svg element, we log all the nodes
+	 * including nodes underneath.
+	 * Credits to Ṣhmiddty from stackoverflow for the algorithm
+	 * for finding the rest of the elementFromPoint after click
+	 * http://stackoverflow.com/questions/12847775/javascript-jquery-get-all-divs-location-at-x-y-forwarding-touches
+	 */
+	module.exports = function(event){
+	     var x = event.pageX, y = event.pageY;
+	     var allElementsClicked = [];
+
+	     var element = document.elementFromPoint(x,y);
+	     while(element && element.tagName != "BODY" && element.tagName != "HTML"){
+
+	       if(element.nodeName === 'circle' && element.className.baseVal !== 'ring') {
+	         console.log('Token: ', element.className.baseVal.replace('node',''));
+	       }
+
+	       allElementsClicked.push(element);
+	       element.style.visibility = "hidden";       // no flickering and no infinite :)
+	       element = document.elementFromPoint(x,y);
+	     }
+
+	     for(var i = 0; i < allElementsClicked.length; i++){
+	         allElementsClicked[i].style.visibility = "visible";
+	     }
+	 }
 
 
 /***/ }

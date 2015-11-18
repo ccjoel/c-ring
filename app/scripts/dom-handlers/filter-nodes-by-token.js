@@ -36,7 +36,6 @@ function removeInvisibleClass() {
 
   for (var i in nodes) {
     if(nodes.hasOwnProperty(i) && i !== 'length') {
-      console.log('nodes[i].className.baseVal', nodes[i].className.baseVal);
       nodes[i].className.baseVal = nodes[i].className.baseVal.replace('invisible', '').trim();
     }
   }

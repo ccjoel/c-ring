@@ -3,7 +3,7 @@ var assert = require('assert');
 
 var GRAPH_RING_RADIUS_MULTIPLIER = require('../constants').GRAPH_RING_RADIUS_MULTIPLIER;
 
-var handleSvgClick = require('../helpers/nodes-under-cursor');
+var handleSvgClick = require('../dom-handlers/nodes-under-cursor');
 
 /**
  *
@@ -20,7 +20,7 @@ var handleSvgClick = require('../helpers/nodes-under-cursor');
  * @throws AssertionError when receiving wrong dimensions (width/height)
  *
  * @author Joel Quiles
- * @since 2015-Nov-16
+ * @since 2015-Nov-17
  */
 module.exports = function(width, height, svgTargetElementId) {
 
@@ -52,6 +52,7 @@ module.exports = function(width, height, svgTargetElementId) {
     "rgba(47, 37, 37, 0.99)"
   );
 
+  // When you click an svg i will console.log all the tokens of nodes under the click
   document.querySelector('svg').addEventListener('click', handleSvgClick);
 
   return {
