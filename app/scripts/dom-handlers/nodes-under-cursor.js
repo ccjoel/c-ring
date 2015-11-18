@@ -13,13 +13,13 @@ module.exports = function(event) {
     y = event.pageY;
   var allElementsClicked = [];
 
-  var nodesClicked = [];
+  var nodesUnderneath = [];
 
   var element = document.elementFromPoint(x, y);
   while (element && element.tagName != "BODY" && element.tagName != "HTML") {
 
     if (element.nodeName === 'circle' && element.className.baseVal !== 'ring') {
-      nodesClicked.push(element);
+      nodesUnderneath.push(element);
       // console.log('Token: ', element.className.baseVal.replace('node', ''));
     }
 
@@ -32,5 +32,12 @@ module.exports = function(event) {
     allElementsClicked[i].style.visibility = "";
   }
 
-  console.log('Tokens: ', nodesClicked);
+  if(nodesUnderneath.length > 2) {
+    // there are two or more tokens under mouse
+    console.log('All tokens: ', nodesUnderneath);
+    nodesUnderneath.forEach(function(node) {
+      node.spaceOut();
+    })
+  }
+
 }

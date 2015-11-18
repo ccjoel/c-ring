@@ -8,9 +8,9 @@
 
 // ------------------------------ NPM IMPORTS ----------------------------------
 
-var assert = require('../assert').assert;       // node assertion library- in the browser!
-var d3 = require('d3');                         // Used to create svg graphs
-var randomRGB = require('randomcolor');         // Generate random colors for the node
+var assert = require('../assert').assert; // node assertion library- in the browser!
+var d3 = require('d3'); // Used to create svg graphs
+var randomRGB = require('randomcolor'); // Generate random colors for the node
 
 // ------------------------------ lib imports ----------------------------------
 
@@ -40,7 +40,7 @@ var GRAPH_NODE_RADIUS_MULTIPLIER = require('../constants').GRAPH_NODE_RADIUS_MUL
  * @author Joel Quiles
  * @since 2015-Nov-16
  */
-module.exports = function (nodeToken, configuration) {
+module.exports = function(nodeToken, configuration) {
 
   // validate token
   assert(nodeToken && typeof nodeToken === 'string', 'invalid nodeToken provided in draw-node');
@@ -53,18 +53,7 @@ module.exports = function (nodeToken, configuration) {
 
   // Trivia night: the plural form of radius can be either radii or radiuses
   var nodeTokenArcRadius = radius / GRAPH_RING_RADIUS_MULTIPLIER;
-  var nodeRadius = radius / GRAPH_NODE_RADIUS_MULTIPLIER;         // 18 was a magic number, playing with a ratio that made sense
-
-  // Generate a random rgb color. Then force 0.3 transparency to see overlap of nodes, and change rgb to rgba format
-  var randomColor = randomRGB({format: 'rgb'}).replace(new RegExp(/[)]$/), ', 0.3)').replace('rgb', 'rgba');
-
-  // insert node into svg, positioning at ring arc.
-  svg.append("circle")        // nodes are visualized as circles in the ring view
-    .attr("class", "node"+nodeToken+" node")
-    .attr("r", nodeRadius)    // Set radius of the node
-    // move node's center to the ring's arc radius
-    .attr("transform", "translate(0," + -nodeTokenArcRadius + ")")
-    .style("fill", randomColor);
+  var nodeRadius = radius / GRAPH_NODE_RADIUS_MULTIPLIER; // 18 was a magic number, playing with a ratio that made sense
 
   // Current position of node (an arc around the ring), with bigger arc when
   // bigger ratio to the max allowed token
@@ -74,7 +63,7 @@ module.exports = function (nodeToken, configuration) {
 
   var ratio = getRatioOfToken(nodeToken); // ratio between the provided node token value and max token
 
-  if(ratio === 0) { // unable to divide by 0, we know the ratio by now
+  if (ratio === 0) { // unable to divide by 0, we know the ratio by now
     ratio = 1.0;
   }
 
@@ -88,12 +77,33 @@ module.exports = function (nodeToken, configuration) {
   var x = Math.cos(interpolateNodePosition(UNIT_CIRCLE_RADIUS) - nodeTokenPosition.startAngle()()); // x coordinate of angle, using cosine to get this value
   var y = Math.sin(interpolateNodePosition(UNIT_CIRCLE_RADIUS) - nodeTokenPosition.startAngle()()); // y coordinate of angle, using sine to get this value
 
-  // translate node along arc to its position
-  d3.select(".node"+nodeToken)
-    .attr("transform", "translate(" + nodeTokenArcRadius * y + "," + -nodeTokenArcRadius * x + ")");
+  // Generate a random rgb color. Then force 0.3 transparency to see overlap of nodes, and change rgb to rgba format
+  var randomColor = randomRGB({
+    format: 'rgb'
+  }).replace(new RegExp(/[)]$/), ', 0.3)').replace('rgb', 'rgba');
+
+  // insert node into svg, positioning at ring arc.
+  svg.append("circle") // nodes are visualized as circles in the ring view
+    .attr("class", "node" + nodeToken + " node")
+    .attr("r", nodeRadius) // Set radius of the node
+    // translate node along arc to its position
+    .attr("transform", "translate(" + nodeTokenArcRadius * y + "," + -nodeTokenArcRadius * x + ")")
+    .style("fill", randomColor)
 
   // previously only logged one token
-  document.querySelector(".node"+nodeToken).addEventListener('click', function(){
+  var node = document.querySelector(".node" + nodeToken)
+
+  node.addEventListener('click', function() {
     console.log('Node Clicked Token: ', nodeToken);
   });
+
+  node.spaceOut = function() {
+    // TODO
+    console.log('spaceOut!');
+
+    d3.select(".node"+nodeToken)
+    .attr("transform", "translate(" + nodeTokenArcRadius * y + "," + -nodeTokenArcRadius * x + ")");
+
+  }
+
 }

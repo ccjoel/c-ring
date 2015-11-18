@@ -48,8 +48,7 @@ module.exports = function(width, height, svgTargetElementId) {
   svg.append("circle")
     .attr("class", "ring")
     .attr("r", ringRadius)
-    .style("fill",
-    "rgba(47, 37, 37, 0.99)"
+    .style("fill", "rgba(47, 37, 37, 0.99)"
   );
 
   // When you click an svg i will console.log all the tokens of nodes under the click

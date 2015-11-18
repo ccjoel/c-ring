@@ -3,7 +3,10 @@
 
 <img src="https://github.com/quilesbaker/ops-ring/blob/master/docs/ring.png" width="300">
 
-A small project that implements a small feature of OpsCenter for interview purposes - Cassandra Cluster Ring
+A small project that implements a small feature of OpsCenter for interview purposes - Cassandra Cluster Ring.
+It should add node by token into correct ring position.
+The image above is just some node art by using random RGB nodes and adding more than 100
+to the ring evenly spaced out.
 
 ## Project Url
 
@@ -53,13 +56,10 @@ Actual dev code:
 ```
 app
 ```
-
 Dist code:
 ```
 www
 ```
-
-
 ## Setting up the project
 ```
 npm install
@@ -97,12 +97,10 @@ During development, you might want to have these running:
 ```
 node_modules/mocha/bin/mocha app/tests/unit/draw-svg.js
 ```
-
 ## Running acceptance tests
 ```
 node_modules/mocha/bin/mocha app/tests/acceptance.js -t 10000
 ```
-
 ## Dependencies
 
 To be able to run npm install, you will need:
@@ -126,10 +124,12 @@ To be able to run npm install, you will need:
 Known issues:
 
 - Mozilla Firefox - Version 41.0.1 - Mac OSX:
- - Firefox is not V8 based, so should replace assertion mechanism. Curerntly using V8's assert in the browser. Listed as an issue on repo.
+ - EventListener and remove node errors. Everything works but throws additional
+ programmer error messages.
+- Internet Explorer / Edge
+ - Currently not tested on IE/Edge
 
-For more compatibilities by feature (svg), see the caniuse image under the `docs`
-folder
+For more compatibilities by feature (svg), see [1] under READM appendix.
 
 #### Technologies Used:
 - `D3js`
@@ -137,7 +137,11 @@ folder
 - `Breakpoint Media queries`
 - `Roboto` Font from Google
 - `BigNumber` npm package
-- Did **not** use jQuery. Should have used jQuery.
+- Did **not** use jQuery. Should have. Maybe.
+
+#### Appendix
+
+<img src="https://github.com/quilesbaker/ops-ring/blob/master/docs/can-i-use-svg.png" width="400">
 
 #### Notes
 
