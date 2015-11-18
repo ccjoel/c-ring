@@ -24,6 +24,10 @@ Sample call of this function with array format:
 window.opsRing.redrawNodes(["0","85070591730234615865843651857942052864"]);
  ```
 
+If you input a number higher than 2^127, it will just print 2^127's position.
+**The node won't go higher than 2^127**
+If you input a number lower or equal to 0, it will assume 0.
+
 You may also input the array contents on the textArea of the Application:
 
 `"0","85070591730234615865843651857942052864"`
