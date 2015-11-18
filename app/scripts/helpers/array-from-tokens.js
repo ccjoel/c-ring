@@ -1,3 +1,6 @@
+
+var cleanInput = require('./clean-input-numbers');
+
 /**
  * Receives a node string, like the one from the input text area, given the format
  * from the specifications. It cleans up this input and stores into an array
@@ -19,26 +22,14 @@
  * @returns array of entered strings from text area
  *
  * @author Joel Quiles
- * @since 2015-Nov-16
+ * @since 2015-Nov-17
  */
 module.exports = function (nodesString) {
 
-  // TODO: validate that input is good with a regex
-  // TODO: if it isn't, return null
-  // TODO: use regex to validate that input is of format ```"0", "485745"```,
+  // ** this function used to be longer :-) **
+
   // basically a list of numbers as strings, separated by commas.
+  // first, clean up. The input will be validated by draw-node later, if its an invalid token
+  return cleanInput(nodesString).split(",");
 
-  var regexQuotes = new RegExp('"', 'g') ;
-  var regexWhiteSpace = new RegExp(" ", 'g') ;
-  var regexEnter = new RegExp("↵", 'g');
-  var regexEnterN = new RegExp("\n", 'g');
-
-  var resultArray = nodesString
-    .replace(regexQuotes,"")
-    .replace(regexWhiteSpace,"")
-    .replace(regexEnter,"")
-    .replace(regexEnterN,"")
-    .split(",");
-
-  return resultArray;
 }

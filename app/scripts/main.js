@@ -128,5 +128,6 @@ window.addEventListener('resize', function() {
   window.opsRing.redrawNodes(lastNodesValue);
 });
 
+// Filter boxes functionality
 filterBtn.addEventListener('click', filterNodesByToken);
 filterClearBtn.addEventListener('click', clearFilter);

@@ -174,6 +174,7 @@
 	  window.opsRing.redrawNodes(lastNodesValue);
 	});
 
+	// Filter boxes functionality
 	filterBtn.addEventListener('click', filterNodesByToken);
 	filterClearBtn.addEventListener('click', clearFilter);
 
@@ -10903,7 +10904,7 @@
 	
 	/**
 	 * Some constants to use accross draw-svg files for the most part
-	 * @since 2015-Nov-16
+	 * @since 2015-Nov-17
 	 */
 	module.exports = {
 	  GRAPH_RING_RADIUS_MULTIPLIER : 2.5,
@@ -10916,13 +10917,13 @@
 	  "85070591730234615865843651857942052864",  // 2^126
 	  "42535295865117307932921825928971026432",  // 2^125
 	  "21267647932558653966460912964485513216",  // 2^124
-	  "10633823966279326983230456482242756608", // 2^123
-	  "5316911983139663491615228241121378304", // 2^122
-	  "2658455991569831745807614120560689152", // 2^121
-	  "1329227995784915872903807060280344576",    // 2^120
+	  "10633823966279326983230456482242756608",  // 2^123
+	  "5316911983139663491615228241121378304",   // 2^122
+	  "2658455991569831745807614120560689152",   // 2^121
+	  "1329227995784915872903807060280344576",   // 2^120
 	  '1208925819614629174706176',               // 2^80
 	  "37778931862957161709568",                 // 2^75
-	  "18889465931478580854785",                  // 2^74+1 == 2^127 - 2^53-1
+	  "18889465931478580854785",                 // 2^74+1 == 2^127 - 2^53-1
 	  "0"
 	];
 
@@ -12005,7 +12006,10 @@
 
 /***/ },
 /* 17 */
-/***/ function(module, exports) {
+/***/ function(module, exports, __webpack_require__) {
+
+	
+	var cleanInput = __webpack_require__(21);
 
 	/**
 	 * Receives a node string, like the one from the input text area, given the format
@@ -12028,28 +12032,16 @@
 	 * @returns array of entered strings from text area
 	 *
 	 * @author Joel Quiles
-	 * @since 2015-Nov-16
+	 * @since 2015-Nov-17
 	 */
 	module.exports = function (nodesString) {
 
-	  // TODO: validate that input is good with a regex
-	  // TODO: if it isn't, return null
-	  // TODO: use regex to validate that input is of format ```"0", "485745"```,
+	  // ** this function used to be longer :-) **
+
 	  // basically a list of numbers as strings, separated by commas.
+	  // first, clean up. The input will be validated by draw-node later, if its an invalid token
+	  return cleanInput(nodesString).split(",");
 
-	  var regexQuotes = new RegExp('"', 'g') ;
-	  var regexWhiteSpace = new RegExp(" ", 'g') ;
-	  var regexEnter = new RegExp("↵", 'g');
-	  var regexEnterN = new RegExp("\n", 'g');
-
-	  var resultArray = nodesString
-	    .replace(regexQuotes,"")
-	    .replace(regexWhiteSpace,"")
-	    .replace(regexEnter,"")
-	    .replace(regexEnterN,"")
-	    .split(",");
-
-	  return resultArray;
 	}
 
 
@@ -12086,14 +12078,19 @@
 /***/ },
 /* 19 */,
 /* 20 */
-/***/ function(module, exports) {
+/***/ function(module, exports, __webpack_require__) {
 
 	
+	var cleanInput = __webpack_require__(21);
+
 	exports.filter = function(e) {
 
 	  var input = document.querySelector('#filter-input');
-	  var circleTarget = document.querySelector('.node'+input.value);
-	  var nodesToHide = document.querySelectorAll('.node:not(.node'+input.value+')');
+	  var cleanInputValue = cleanInput(input.value);
+	  var circleTarget = document.querySelector('.node'+cleanInputValue);
+	  var nodesToHide = document.querySelectorAll('.node:not(.node'+cleanInputValue+')');
+
+	  removeInvisibleClass(); // just preventing adding double 'invisible' classes
 
 	  for (var i in nodesToHide) {
 	    if(nodesToHide.hasOwnProperty(i) && i !== 'length') {
@@ -12103,22 +12100,51 @@
 
 	};
 
-	exports.clear = function(e) {
-
+	exports.clear = function() {
+	  removeInvisibleClass();
+	  // add extra pepper and clear the input box
 	  var input = document.querySelector('#filter-input');
+	  input.value = "";
+	}
+
+	/**
+	 * Simple function. Removes all `invisible` class from nodes previously hidden;
+	 * @author Joel Quiles
+	 * @since 2015-Nov-17
+	 */
+	function removeInvisibleClass() {
+
 	  var nodes = document.querySelectorAll('.invisible');
 
 	  for (var i in nodes) {
 	    if(nodes.hasOwnProperty(i) && i !== 'length') {
-
 	      console.log('nodes[i].className.baseVal', nodes[i].className.baseVal);
-
-	      nodes[i].className.baseVal = nodes[i].className.baseVal.replace('invisible', '');
+	      nodes[i].className.baseVal = nodes[i].className.baseVal.replace('invisible', '').trim();
 	    }
 	  }
+	}
 
-	  input.value = "";
 
+/***/ },
+/* 21 */
+/***/ function(module, exports) {
+
+	
+	module.exports = function(input) {
+	  var regexDoubleQuotes = new RegExp('"', 'g') ;
+	  var regexQuotes = new RegExp("'", 'g') ;
+	  var regexWhiteSpace = new RegExp(" ", 'g') ;
+	  var regexEnter = new RegExp("↵", 'g');
+	  var regexEnterN = new RegExp("\n", 'g');
+
+	  var cleanInputValue = input
+	    .replace(regexQuotes,'')
+	    .replace(regexDoubleQuotes,'')
+	    .replace(regexWhiteSpace,'')
+	    .replace(regexEnter,'')
+	    .replace(regexEnterN,'');
+
+	  return cleanInputValue;
 	}
 
 
