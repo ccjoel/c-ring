@@ -68,6 +68,7 @@ Also, install some global dependencies to easier build project:
 ```
 npm install -g webpack gulp
 ```
+(might have to use sudo to install globals if not fixed npm permissions or default folder).
 
 ## Build
 
