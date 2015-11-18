@@ -3,6 +3,8 @@ var assert = require('assert');
 
 var GRAPH_RING_RADIUS_MULTIPLIER = require('../constants').GRAPH_RING_RADIUS_MULTIPLIER;
 
+var handleSvgClick = require('../helpers/nodes-under-cursor');
+
 /**
  *
  * Creates ring for ring view, taking width/height as input and outputting the
@@ -50,36 +52,7 @@ module.exports = function(width, height, svgTargetElementId) {
     "rgba(47, 37, 37, 0.99)"
   );
 
-  document.querySelector('svg').addEventListener('click',
-    /**
-     * Attach event so that when we click the svg element, we log all the nodes
-     * including nodes underneath.
-     * Credits to Ṣhmiddty from stackoverflow for the algorithm
-     * for finding the rest of the elementFromPoint after click
-     * http://stackoverflow.com/questions/12847775/javascript-jquery-get-all-divs-location-at-x-y-forwarding-touches
-     */
-    function(event){
-        var x = event.pageX, y = event.pageY;
-        var allElementsClicked = [];
-
-        // var nodesClicked = [];
-
-        var element = document.elementFromPoint(x,y);
-        while(element && element.tagName != "BODY" && element.tagName != "HTML"){
-
-          if(element.nodeName === 'circle' && element.className.baseVal !== 'ring') {
-            console.log('Clicked token: ', element.className.baseVal.replace('node',''));
-          }
-
-          allElementsClicked.push(element);
-          element.style.visibility = "hidden";       // no flickering and no infinite :)
-          element = document.elementFromPoint(x,y);
-        }
-
-        for(var i = 0; i < allElementsClicked.length; i++){
-            allElementsClicked[i].style.visibility = "visible";
-        }
-    });
+  document.querySelector('svg').addEventListener('click', handleSvgClick);
 
   return {
     svg: svg,

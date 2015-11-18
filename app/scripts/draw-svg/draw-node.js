@@ -1,5 +1,7 @@
 /**
- * Small library that creates a replica of the OpsCenter ring view given a list of cluster nodes
+ * Renders one node on a ring view.
+ * This is part of a small library that creates a replica of the OpsCenter ring
+ * view given a list of cluster nodes
  * @author Joel Quiles
  * @since 2015-Nov-16
  */
@@ -22,7 +24,6 @@ var GRAPH_RING_RADIUS_MULTIPLIER = require('../constants').GRAPH_RING_RADIUS_MUL
 var GRAPH_NODE_RADIUS_MULTIPLIER = require('../constants').GRAPH_NODE_RADIUS_MULTIPLIER;
 
 // ------------------------------ Functions ------------------------------------
-
 
 
 /**
@@ -77,12 +78,8 @@ module.exports = function (nodeToken, configuration) {
     ratio = 1.0;
   }
 
-  console.log('ratio', ratio);
-
   // position of circle as radians
   var positionInCircle = 2 * Math.PI / ratio;
-
-  console.log('positionInCircle', positionInCircle);
 
   // create a function that uses the end angle 9 (in radians) and the position of element in circle
   var interpolateNodePosition = d3.interpolate(nodeTokenPosition.endAngle()(), positionInCircle);
@@ -96,7 +93,7 @@ module.exports = function (nodeToken, configuration) {
     .attr("transform", "translate(" + nodeTokenArcRadius * y + "," + -nodeTokenArcRadius * x + ")");
 
   // previously only logged one token
-  // document.querySelector(".node"+nodeToken).addEventListener('click', function(){
-  //   console.log('token: '+ nodeToken);
-  // });
+  document.querySelector(".node"+nodeToken).addEventListener('click', function(){
+    console.log('Clicked: '+ nodeToken);
+  });
 }

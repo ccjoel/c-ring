@@ -39,7 +39,7 @@ describe('Draw one graph node', function() {
     try {
       drawNode('3876455', {});
     } catch (e) {
-      expect(e.message).to.equal('invalid configuration provided');
+      expect(e.message).to.equal('invalid configuration provided in draw-node');
     }
   });
 
@@ -51,7 +51,7 @@ describe('Draw one graph node', function() {
           radius: 'c'
         });
       } catch (e) {
-        expect(e.message).to.equal('invalid nodeToken provided');
+        expect(e.message).to.equal('invalid nodeToken provided in draw-node');
       }
 
       try {
@@ -60,7 +60,7 @@ describe('Draw one graph node', function() {
           radius: 'c'
         });
       } catch (e) {
-        expect(e.message).to.equal('nodeToken provided is not a number');
+        expect(e.message).to.equal('nodeToken provided is not a number in draw-node');
       }
 
       try {
@@ -69,7 +69,7 @@ describe('Draw one graph node', function() {
           radius: 'c'
         });
       } catch (e) {
-        expect(e.message).to.equal('invalid nodeToken provided');
+        expect(e.message).to.equal('invalid nodeToken provided in draw-node');
       }
 
     });

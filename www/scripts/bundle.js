@@ -68,9 +68,9 @@
 	// include the required graph lib
 	var setupGraph = __webpack_require__(1);
 	var drawNodes = __webpack_require__(9);
-	var clearPreviousNodes = __webpack_require__(15);
-	var createArrayFromTextAreaTokens = __webpack_require__(16);
-	var resizeContainer = __webpack_require__(17);
+	var clearPreviousNodes = __webpack_require__(13);
+	var createArrayFromTextAreaTokens = __webpack_require__(14);
+	var resizeContainer = __webpack_require__(15);
 
 	// ---------------------------- DOM elements -----------------------------------
 
@@ -181,6 +181,8 @@
 
 	var GRAPH_RING_RADIUS_MULTIPLIER = __webpack_require__(8).GRAPH_RING_RADIUS_MULTIPLIER;
 
+	var handleSvgClick = __webpack_require__(18);
+
 	/**
 	 *
 	 * Creates ring for ring view, taking width/height as input and outputting the
@@ -228,36 +230,7 @@
 	    "rgba(47, 37, 37, 0.99)"
 	  );
 
-	  document.querySelector('svg').addEventListener('click',
-	    /**
-	     * Attach event so that when we click the svg element, we log all the nodes
-	     * including nodes underneath.
-	     * Credits to Ṣhmiddty from stackoverflow for the algorithm
-	     * for finding the rest of the elementFromPoint after click
-	     * http://stackoverflow.com/questions/12847775/javascript-jquery-get-all-divs-location-at-x-y-forwarding-touches
-	     */
-	    function(event){
-	        var x = event.pageX, y = event.pageY;
-	        var allElementsClicked = [];
-
-	        // var nodesClicked = [];
-
-	        var element = document.elementFromPoint(x,y);
-	        while(element && element.tagName != "BODY" && element.tagName != "HTML"){
-
-	          if(element.nodeName === 'circle' && element.className.baseVal !== 'ring') {
-	            console.log('Clicked token: ', element.className.baseVal.replace('node',''));
-	          }
-
-	          allElementsClicked.push(element);
-	          element.style.visibility = "hidden";       // no flickering and no infinite :)
-	          element = document.elementFromPoint(x,y);
-	        }
-
-	        for(var i = 0; i < allElementsClicked.length; i++){
-	            allElementsClicked[i].style.visibility = "visible";
-	        }
-	    });
+	  document.querySelector('svg').addEventListener('click', handleSvgClick);
 
 	  return {
 	    svg: svg,
@@ -10932,6 +10905,22 @@
 	};
 
 
+	var testValues = [
+	  "170141183460469231731687303715884105728", // 2^127
+	  "85070591730234615865843651857942052864",  // 2^126
+	  "42535295865117307932921825928971026432",  // 2^125
+	  "21267647932558653966460912964485513216",  // 2^124
+	  "10633823966279326983230456482242756608", // 2^123
+	  "5316911983139663491615228241121378304", // 2^122
+	  "2658455991569831745807614120560689152", // 2^121
+	  "1329227995784915872903807060280344576",    // 2^120
+	  '1208925819614629174706176',               // 2^80
+	  "37778931862957161709568",                 // 2^75
+	  "18889465931478580854785",                  // 2^74+1 == 2^127 - 2^53-1
+	  "0"
+	];
+
+
 /***/ },
 /* 9 */
 /***/ function(module, exports, __webpack_require__) {
@@ -10965,7 +10954,9 @@
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
-	 * Small library that creates a replica of the OpsCenter ring view given a list of cluster nodes
+	 * Renders one node on a ring view.
+	 * This is part of a small library that creates a replica of the OpsCenter ring
+	 * view given a list of cluster nodes
 	 * @author Joel Quiles
 	 * @since 2015-Nov-16
 	 */
@@ -10988,7 +10979,6 @@
 	var GRAPH_NODE_RADIUS_MULTIPLIER = __webpack_require__(8).GRAPH_NODE_RADIUS_MULTIPLIER;
 
 	// ------------------------------ Functions ------------------------------------
-
 
 
 	/**
@@ -11043,12 +11033,8 @@
 	    ratio = 1.0;
 	  }
 
-	  console.log('ratio', ratio);
-
 	  // position of circle as radians
 	  var positionInCircle = 2 * Math.PI / ratio;
-
-	  console.log('positionInCircle', positionInCircle);
 
 	  // create a function that uses the end angle 9 (in radians) and the position of element in circle
 	  var interpolateNodePosition = d3.interpolate(nodeTokenPosition.endAngle()(), positionInCircle);
@@ -11062,9 +11048,9 @@
 	    .attr("transform", "translate(" + nodeTokenArcRadius * y + "," + -nodeTokenArcRadius * x + ")");
 
 	  // previously only logged one token
-	  // document.querySelector(".node"+nodeToken).addEventListener('click', function(){
-	  //   console.log('token: '+ nodeToken);
-	  // });
+	  document.querySelector(".node"+nodeToken).addEventListener('click', function(){
+	    console.log('Clicked: '+ nodeToken);
+	  });
 	}
 
 
@@ -11486,7 +11472,7 @@
 	
 	// ------------------------------ imports --------------------------------------
 
-	var BigNumber = __webpack_require__(13).n; // to work with BIG numbers in javascript :)
+	var BigNumber = __webpack_require__(16).n; // to work with BIG numbers in javascript :)
 	// Supported BigNumber methods: add/plus, minus/subtract,
 	// multiply/mult, divide/div, power/pow, mod,
 	// equals, lt, lte, gt, gte, isZero, abs
@@ -11497,8 +11483,10 @@
 
 	// ------------------------------ globals -------------------------------------
 
-	var MAX_TOKEN = BigNumber(2).pow(127)+''; // 2^127 is biggest token value
-
+	// var MAX_JS = BigNumber(2).pow(53).minus(1);
+	var MAX_DIFF = BigNumber(2).pow(74).plus(1);
+	var MAX_TOKEN = BigNumber(2).pow(127).divide(MAX_DIFF); // 2^127 is biggest token value
+	var BIGGEST_NUMBER = BigNumber(2).pow(127);
 	// 2^127 = 170141183460469231731687303715884105728
 	// 2^ 126 = 85070591730234615865843651857942052864
 
@@ -11527,27 +11515,143 @@
 	    return 0;
 	  }
 
-	  if(BigNumber(token).gt(MAX_TOKEN)) {
-	    console.warn('You have passed a higher value than 2^127. This is  not supported. Returning 0');
-	    return 0;
+	  if(BigNumber(token).gt(BIGGEST_NUMBER+'')) {
+	    console.warn('You have passed a higher value than 2^127. This is  not supported. Returning MAX position.');
+	    return 1.0;
 	  }
 
-	  // tried another algorithm, using log2 and make ratio out of 127, but it was even less accurate
-	  var inverseRatio = BigNumber(MAX_TOKEN).divide(token);
+	  // if less than 2^100, you wont see the difference :)
+	  if(Math.log2(BigNumber(token)) < 100) {
+	    return 0.0;
+	  }
 
-	  return parseFloat(inverseRatio, 10);
+	  // scale token by same ratio as MAX_TOKEN
+	  var tokenScaled = BigNumber(token).divide(MAX_DIFF+'')+'';
+	  // convert to float both 2^127 and received token
+	  var tokenScaledFloat = parseFloat(tokenScaled, 10);
+	  var maxScaledFloat = parseFloat(BigNumber(MAX_TOKEN+''),10);
+
+	  // return the ratio MAX:token
+	  return maxScaledFloat / tokenScaledFloat;
 	}
 
 
 /***/ },
 /* 13 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ function(module, exports) {
 
-	module.exports = __webpack_require__(14);
+	/**
+	 * This function removes all nodes from the svg, to prepare to add new ones with
+	 * different token values.
+	 *
+	 * @author Joel Quiles
+	 * @since 2015-Nov-16
+	 */
+
+	module.exports = function() {
+	  var nodes = document.querySelectorAll('circle:not(.ring)');
+	  if(nodes && nodes.length) {
+	    for(var i in nodes) {
+	      if(nodes.hasOwnProperty(i)) {
+	        // remove click listener. just in case
+	        nodes[i].removeEventListener('click');
+	        // remove node from parent svg -> g element
+	        nodes[i].parentNode.removeChild(nodes[i]);
+	      }
+	    }
+	  }
+	}
 
 
 /***/ },
 /* 14 */
+/***/ function(module, exports) {
+
+	/**
+	 * Receives a node string, like the one from the input text area, given the format
+	 * from the specifications. It cleans up this input and stores into an array
+	 *
+	 * Example:
+	 *
+	 * Text area's contents are: "0", "357645765467"
+
+	 * If we don't clean the data, the array might turn out to be:
+	 * [' "4545" ', ' " 4" ']
+	 * etc
+	 *
+	 * Thus, this fuction returns it like so:
+	 *
+	 * ['4545', '4']  // with no spaces, commas, or quote characters
+	 *
+	 *
+	 * @param {!Object} nodeListTa reference to the text area DOM element
+	 * @returns array of entered strings from text area
+	 *
+	 * @author Joel Quiles
+	 * @since 2015-Nov-16
+	 */
+	module.exports = function (nodesString) {
+
+	  // TODO: validate that input is good with a regex
+	  // TODO: if it isn't, return null
+	  // TODO: use regex to validate that input is of format ```"0", "485745"```,
+	  // basically a list of numbers as strings, separated by commas.
+
+	  var regexQuotes = new RegExp('"', 'g') ;
+	  var regexWhiteSpace = new RegExp(" ", 'g') ;
+	  var regexEnter = new RegExp("↵", 'g');
+	  var regexEnterN = new RegExp("\n", 'g');
+
+	  var resultArray = nodesString
+	    .replace(regexQuotes,"")
+	    .replace(regexWhiteSpace,"")
+	    .replace(regexEnter,"")
+	    .replace(regexEnterN,"")
+	    .split(",");
+
+	  return resultArray;
+	}
+
+
+/***/ },
+/* 15 */
+/***/ function(module, exports) {
+
+	module.exports = function(document, window, container, padding) {
+
+	  var sidebar = document.querySelector('.sidebar');
+
+	  var sideBarWidth = sidebar.offsetWidth;
+	  var sideBarHeight = sidebar.offsetHeight;
+	  var windowWidth = window.innerWidth;
+	  var windowHeight = window.innerHeight;
+
+	  var containerHeight = container.offsetHeight;
+	  var containerWidth = container.offsetrWidth;
+
+	  if(containerWidth < windowWidth - sideBarWidth - padding) {
+	    container.style.width = windowWidth - sideBarWidth - padding + "px";
+	  }
+
+	  if(containerHeight > containerWidth) {
+	    container.style.height = containerWidth + "px";
+	  }
+	  if(containerWidth > containerHeight) {
+	    container.style.width = containerHeight + "px";
+	  }
+
+	}
+
+
+/***/ },
+/* 16 */
+/***/ function(module, exports, __webpack_require__) {
+
+	module.exports = __webpack_require__(17);
+
+
+/***/ },
+/* 17 */
 /***/ function(module, exports) {
 
 	/*!
@@ -11932,110 +12036,36 @@
 
 
 /***/ },
-/* 15 */
+/* 18 */
 /***/ function(module, exports) {
 
 	/**
-	 * This function removes all nodes from the svg, to prepare to add new ones with
-	 * different token values.
-	 *
-	 * @author Joel Quiles
-	 * @since 2015-Nov-16
+	 * Attach event so that when we click the svg element, we log all the nodes
+	 * including nodes underneath.
+	 * Credits to Ṣhmiddty from stackoverflow for the algorithm
+	 * for finding the rest of the elementFromPoint after click
+	 * http://stackoverflow.com/questions/12847775/javascript-jquery-get-all-divs-location-at-x-y-forwarding-touches
 	 */
+	module.exports = function(event){
+	     var x = event.pageX, y = event.pageY;
+	     var allElementsClicked = [];
 
-	module.exports = function() {
-	  var nodes = document.querySelectorAll('circle:not(.ring)');
-	  if(nodes && nodes.length) {
-	    for(var i in nodes) {
-	      if(nodes.hasOwnProperty(i)) {
-	        // remove click listener. just in case
-	        nodes[i].removeEventListener('click');
-	        // remove node from parent svg -> g element
-	        nodes[i].parentNode.removeChild(nodes[i]);
-	      }
-	    }
-	  }
-	}
+	     var element = document.elementFromPoint(x,y);
+	     while(element && element.tagName != "BODY" && element.tagName != "HTML"){
 
+	       if(element.nodeName === 'circle' && element.className.baseVal !== 'ring') {
+	         console.log('Token: ', element.className.baseVal.replace('node',''));
+	       }
 
-/***/ },
-/* 16 */
-/***/ function(module, exports) {
+	       allElementsClicked.push(element);
+	       element.style.visibility = "hidden";       // no flickering and no infinite :)
+	       element = document.elementFromPoint(x,y);
+	     }
 
-	/**
-	 * Receives a node string, like the one from the input text area, given the format
-	 * from the specifications. It cleans up this input and stores into an array
-	 *
-	 * Example:
-	 *
-	 * Text area's contents are: "0", "357645765467"
-
-	 * If we don't clean the data, the array might turn out to be:
-	 * [' "4545" ', ' " 4" ']
-	 * etc
-	 *
-	 * Thus, this fuction returns it like so:
-	 *
-	 * ['4545', '4']  // with no spaces, commas, or quote characters
-	 *
-	 *
-	 * @param {!Object} nodeListTa reference to the text area DOM element
-	 * @returns array of entered strings from text area
-	 *
-	 * @author Joel Quiles
-	 * @since 2015-Nov-16
-	 */
-	module.exports = function (nodesString) {
-
-	  // TODO: validate that input is good with a regex
-	  // TODO: if it isn't, return null
-	  // TODO: use regex to validate that input is of format ```"0", "485745"```,
-	  // basically a list of numbers as strings, separated by commas.
-
-	  var regexQuotes = new RegExp('"', 'g') ;
-	  var regexWhiteSpace = new RegExp(" ", 'g') ;
-	  var regexEnter = new RegExp("↵", 'g');
-	  var regexEnterN = new RegExp("\n", 'g');
-
-	  var resultArray = nodesString
-	    .replace(regexQuotes,"")
-	    .replace(regexWhiteSpace,"")
-	    .replace(regexEnter,"")
-	    .replace(regexEnterN,"")
-	    .split(",");
-
-	  return resultArray;
-	}
-
-
-/***/ },
-/* 17 */
-/***/ function(module, exports) {
-
-	module.exports = function(document, window, container, padding) {
-
-	  var sidebar = document.querySelector('.sidebar');
-
-	  var sideBarWidth = sidebar.offsetWidth;
-	  var sideBarHeight = sidebar.offsetHeight;
-	  var windowWidth = window.innerWidth;
-	  var windowHeight = window.innerHeight;
-
-	  var containerHeight = container.offsetHeight;
-	  var containerWidth = container.offsetrWidth;
-
-	  if(containerWidth < windowWidth - sideBarWidth - padding) {
-	    container.style.width = windowWidth - sideBarWidth - padding + "px";
-	  }
-
-	  if(containerHeight > containerWidth) {
-	    container.style.height = containerWidth + "px";
-	  }
-	  if(containerWidth > containerHeight) {
-	    container.style.width = containerHeight + "px";
-	  }
-
-	}
+	     for(var i = 0; i < allElementsClicked.length; i++){
+	         allElementsClicked[i].style.visibility = "visible";
+	     }
+	 }
 
 
 /***/ }

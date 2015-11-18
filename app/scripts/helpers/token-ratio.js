@@ -12,8 +12,10 @@ var assert = require('assert');
 
 // ------------------------------ globals -------------------------------------
 
-var MAX_TOKEN = BigNumber(2).pow(127)+''; // 2^127 is biggest token value
-
+// var MAX_JS = BigNumber(2).pow(53).minus(1);
+var MAX_DIFF = BigNumber(2).pow(74).plus(1);
+var MAX_TOKEN = BigNumber(2).pow(127).divide(MAX_DIFF); // 2^127 is biggest token value
+var BIGGEST_NUMBER = BigNumber(2).pow(127);
 // 2^127 = 170141183460469231731687303715884105728
 // 2^ 126 = 85070591730234615865843651857942052864
 
@@ -42,13 +44,22 @@ module.exports = function (token) {
     return 0;
   }
 
-  if(BigNumber(token).gt(MAX_TOKEN)) {
-    console.warn('You have passed a higher value than 2^127. This is  not supported. Returning 0');
-    return 0;
+  if(BigNumber(token).gt(BIGGEST_NUMBER+'')) {
+    console.warn('You have passed a higher value than 2^127. This is  not supported. Returning MAX position.');
+    return 1.0;
   }
 
-  // tried another algorithm, using log2 and make ratio out of 127, but it was even less accurate
-  var inverseRatio = BigNumber(MAX_TOKEN).divide(token);
+  // if less than 2^100, you wont see the difference :)
+  if(Math.log2(BigNumber(token)) < 100) {
+    return 0.0;
+  }
 
-  return parseFloat(inverseRatio, 10);
+  // scale token by same ratio as MAX_TOKEN
+  var tokenScaled = BigNumber(token).divide(MAX_DIFF+'')+'';
+  // convert to float both 2^127 and received token
+  var tokenScaledFloat = parseFloat(tokenScaled, 10);
+  var maxScaledFloat = parseFloat(BigNumber(MAX_TOKEN+''),10);
+
+  // return the ratio MAX:token
+  return maxScaledFloat / tokenScaledFloat;
 }
