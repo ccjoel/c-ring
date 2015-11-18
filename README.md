@@ -1,6 +1,8 @@
 
 # Ops-Ring
 
+![Ring Preview with a lots of nodes](https://github.com/quilesbaker/ops-ring/blob/master/docs/ring.png "Ring of Balancing")
+
 A small project that implements a small feature of OpsCenter for interview purposes - Cassandra Cluster Ring
 
 ## Project Url
