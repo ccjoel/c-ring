@@ -94,7 +94,7 @@ module.exports = function(nodeToken, configuration) {
 
   // Add click listener in case
   node.addEventListener('click', function() {
-    console.log('Node Clicked Token: ', nodeToken);
+    console.log('Clicked Node Token: ', nodeToken);
   });
 
   /*
