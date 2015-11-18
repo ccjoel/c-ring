@@ -84,7 +84,7 @@ var lastNodesValue = createArrayFromTextAreaTokens(nodeListTA.value);
 
 console.log('Welcome.\nThe Ring nodes change color each time they are repainted,to a random color, just to make it more fun.');
 console.log('\nYou may call window.opsRing.redrawNodes to change nodes to your pleasure.');
-console.log('Sample use with input:\nopsRing.redrawNodes(["0", "85070591730234615865843651857942052864"])');
+console.log('Sample use with input:\nopsRing.drawNew(["0", "85070591730234615865843651857942052864"])');
 
 // -------------------------------- API ---------------------------------------
 // expose API to window environment
