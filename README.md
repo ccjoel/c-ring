@@ -10,7 +10,7 @@ to the ring evenly spaced out.
 
 ## Project Url
 
-http://ops-ring.cf
+<a href="http://ops-ring.cf/" target="_blank">ops-ring.cf</a>
 
 # Running Project
 
