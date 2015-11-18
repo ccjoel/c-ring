@@ -390,11 +390,6 @@ textarea {
   width: 90%;
   height: 10em; }
 
-#update-ring-btn {
-  width: 90%;
-  margin-top: .5em;
-  padding: .5em; }
-
 nav {
   background: rgba(22, 22, 22, 0.1);
   float: right;
@@ -426,3 +421,8 @@ footer {
 
 #ring-container {
   background-color: black; }
+
+#update-ring-btn {
+  width: 90%;
+  margin-top: .5em;
+  padding: .5em; }

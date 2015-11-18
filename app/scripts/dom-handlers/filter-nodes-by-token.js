@@ -1,6 +1,14 @@
 
 var cleanInput = require('../helpers/clean-input-numbers');
 
+/**
+ * Filter function is a dom event handler. The only use case for now, is to
+ * run on filter button click. It will only show the particular node with token id
+ * from the input box next to the filter button.
+ *
+ * @author Joel Quiles
+ * @since 2015-Nov-17-
+ */
 exports.filter = function(e) {
 
   var input = document.querySelector('#filter-input');
@@ -17,7 +25,13 @@ exports.filter = function(e) {
   }
 
 };
-
+/**
+ * Clear function is a dom event handler. The only use case for now, is to
+ * clear previously filtered nodes.
+ *
+ * @author Joel Quiles
+ * @since 2015-Nov-17-
+ */
 exports.clear = function() {
   removeInvisibleClass();
   // add extra pepper and clear the input box

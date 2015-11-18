@@ -12018,7 +12018,24 @@
 /* 18 */
 /***/ function(module, exports) {
 
+	/**
+	 * Resizes svg container a little bit, called when resizing window usually
+	 *
+	 * TODO: Clean this function and make it work better.
+	 *
+	 * @param {!Object} document pass the dom document element since its not currently in scope
+	 * @param {!object} window same as document. pass to use it on this scope
+	 * @param {!object} container dom element reference
+	 * @param {Number} padding amount of padding used in html/css for dom. Should get programmatically later
+	 *
+	 * @author Joel Quiles
+	 * @since 2015-Nov-17
+	 */
 	module.exports = function(document, window, container, padding) {
+
+	  if(!padding) { // just in case padding is not passed
+	    padding = 0;
+	  }
 
 	  var sidebar = document.querySelector('.sidebar');
 
@@ -12052,6 +12069,14 @@
 	
 	var cleanInput = __webpack_require__(21);
 
+	/**
+	 * Filter function is a dom event handler. The only use case for now, is to
+	 * run on filter button click. It will only show the particular node with token id
+	 * from the input box next to the filter button.
+	 *
+	 * @author Joel Quiles
+	 * @since 2015-Nov-17-
+	 */
 	exports.filter = function(e) {
 
 	  var input = document.querySelector('#filter-input');
@@ -12068,7 +12093,13 @@
 	  }
 
 	};
-
+	/**
+	 * Clear function is a dom event handler. The only use case for now, is to
+	 * clear previously filtered nodes.
+	 *
+	 * @author Joel Quiles
+	 * @since 2015-Nov-17-
+	 */
 	exports.clear = function() {
 	  removeInvisibleClass();
 	  // add extra pepper and clear the input box
@@ -12097,7 +12128,12 @@
 /* 21 */
 /***/ function(module, exports) {
 
-	
+	/**
+	 * Utility functions that receives a messy string of almost valid input,
+	 * and cleans it up. It removes ', ", enter characters, etc, from input.
+	 * @param {!String} input which is normally something like "'0',  '343',  '43434'"
+	 * @returns String cleanInputValue
+	 */
 	module.exports = function(input) {
 	  var regexDoubleQuotes = new RegExp('"', 'g') ;
 	  var regexQuotes = new RegExp("'", 'g') ;
@@ -12123,30 +12159,61 @@
 	/**
 	 * Attach event so that when we click the svg element, we log all the nodes
 	 * including nodes underneath.
-	 * Credits to Ṣhmiddty from stackoverflow for the algorithm
+	 * Credits to Ṣhmiddty from stackoverflow for the algorithm on continuosly getting elements underneath
 	 * for finding the rest of the elementFromPoint after click
 	 * http://stackoverflow.com/questions/12847775/javascript-jquery-get-all-divs-location-at-x-y-forwarding-touches
 	 */
-	module.exports = function(event){
-	     var x = event.pageX, y = event.pageY;
-	     var allElementsClicked = [];
+	module.exports = function(event) {
+	  var x = event.pageX,
+	    y = event.pageY;
+	  var allElementsClicked = [];
 
-	     var element = document.elementFromPoint(x,y);
-	     while(element && element.tagName != "BODY" && element.tagName != "HTML"){
+	  var element = document.elementFromPoint(x, y);
+	  while (element && element.tagName != "BODY" && element.tagName != "HTML") {
 
-	       if(element.nodeName === 'circle' && element.className.baseVal !== 'ring') {
-	         console.log('Token: ', element.className.baseVal.replace('node',''));
-	       }
+	    if (element.nodeName === 'circle' && element.className.baseVal !== 'ring') {
+	      console.log('Token: ', element.className.baseVal.replace('node', ''));
+	    }
 
-	       allElementsClicked.push(element);
-	       element.style.visibility = "hidden";       // no flickering and no infinite :)
-	       element = document.elementFromPoint(x,y);
-	     }
+	    allElementsClicked.push(element);
+	    element.style.visibility = "hidden"; // no flickering and no infinite :)
+	    element = document.elementFromPoint(x, y);
+	  }
 
-	     for(var i = 0; i < allElementsClicked.length; i++){
-	         allElementsClicked[i].style.visibility = "visible";
-	     }
-	 }
+	  for (var i = 0; i < allElementsClicked.length; i++) {
+	    allElementsClicked[i].style.visibility = "visible";
+	  }
+	}
+
+
+	function moveOverlappingNodesOnHover(event) {
+	  var x = event.pageX,
+	    y = event.pageY;
+	  var allElementsClicked = [];
+
+	  var circlesClicked = [];
+
+	  var element = document.elementFromPoint(x, y);
+	  while (element && element.tagName != "BODY" && element.tagName != "HTML") {
+
+	    if (element.nodeName === 'circle' && element.className.baseVal !== 'ring') {
+	      circlesClicked.push(element);
+	    }
+
+	    allElementsClicked.push(element);
+	    element.style.visibility = "hidden"; // no flickering and no infinite :)
+	    element = document.elementFromPoint(x, y);
+	  }
+
+	  for (var i = 0; i < allElementsClicked.length; i++) {
+	    allElementsClicked[i].style.visibility = "visible";
+	  }
+
+	  // TODO transorm circlesClicked elements...
+
+	  // this is going to be hard
+
+	}
 
 
 /***/ }

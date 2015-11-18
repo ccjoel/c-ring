@@ -1,4 +1,21 @@
+/**
+ * Resizes svg container a little bit, called when resizing window usually
+ *
+ * TODO: Clean this function and make it work better.
+ *
+ * @param {!Object} document pass the dom document element since its not currently in scope
+ * @param {!object} window same as document. pass to use it on this scope
+ * @param {!object} container dom element reference
+ * @param {Number} padding amount of padding used in html/css for dom. Should get programmatically later
+ *
+ * @author Joel Quiles
+ * @since 2015-Nov-17
+ */
 module.exports = function(document, window, container, padding) {
+
+  if(!padding) { // just in case padding is not passed
+    padding = 0;
+  }
 
   var sidebar = document.querySelector('.sidebar');
 

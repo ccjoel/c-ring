@@ -28,11 +28,18 @@ If you input a number higher than 2^127, it will just print 2^127's position.
 **The node won't go higher than 2^127**
 If you input a number lower or equal to 0, it will assume 0.
 
+When you click a node, it will print the node clicked, plus any other node
+underneath it if the tokens are too close together.
+
 You may also input the array contents on the textArea of the Application:
 
 `"0","85070591730234615865843651857942052864"`
 
 and press update to view the changes.
+
+You may enter one token value you know is in the ring into the filter box. When you
+click filter (click only for now, press enter on TODO) it will only show that node.
+You may press the clear button to clear the filter and show all nodes again.
 
 Note: You will need an internet connection to run the app. It loads a google web font.
 If you don't have internet, it will take its time to try to load the font,
