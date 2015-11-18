@@ -10,7 +10,7 @@ to the ring evenly spaced out.
 
 ## Project Url
 
-`http://ops-ring.cf`
+http://ops-ring.cf
 
 # Running Project
 
