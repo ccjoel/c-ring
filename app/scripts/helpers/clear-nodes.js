@@ -13,7 +13,7 @@ module.exports = function() {
   if(nodes && nodes.length) {
 
     for(var i in nodes) {
-      if(nodes.hasOwnProperty(i)) {
+      if(nodes.hasOwnProperty(i) && nodes[i] !== 'length') {
         // TODO: remove click listener. just in case
         // nodes[i].removeEventListener('click');
         // remove node from parent svg -> g element
