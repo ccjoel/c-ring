@@ -95,6 +95,11 @@ During development, you might want to have these running:
 node_modules/mocha/bin/mocha app/tests/unit/draw-svg.js
 ```
 
+## Running acceptance tests
+```
+node_modules/mocha/bin/mocha app/tests/acceptance.js -t 10000
+```
+
 ## Dependencies
 
 To be able to run npm install, you will need:
