@@ -28,13 +28,17 @@ exports.filter = function(e) {
 };
 
 /**
-* If you have moved the nodes while govering groups, we need to restore their position
+* If you have moved the nodes while hovering groups, we need to restore their position
 */
 function reorganizeNodes() {
   var allNodes = document.querySelectorAll('.node');
   for (var i in allNodes) {
     if(allNodes.hasOwnProperty(i) && i !== 'length') {
-      allNodes[i].spaceBackIn();
+      try{
+        allNodes[i].spaceBackIn();
+      } catch(e) {
+        console.log('Unable to space back in node. Too many nodes!');
+      }
     }
   }
 }
