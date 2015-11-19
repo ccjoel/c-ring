@@ -44,7 +44,8 @@ and press update to view the changes.
 
 You may enter one token value you know is in the ring into the filter box. When you
 click filter (click only for now, press enter on TODO) it will only show that node.
-You may press the clear button to clear the filter and show all nodes again.
+You may press the clear button to clear the filter and show all nodes again. You have
+to clear the filter in order to add a different filter (TODO).
 
 You can notice when nodes overlap by seeing their transparency go away. The more
 nodes overlap each other, the less transparent these grouped nodes will seem.
@@ -97,6 +98,7 @@ gulp styles
 During development, you might want to have these running:
 - `webpack --progress --colors --watch`, to bundle files into bundle.js for import to html
 - `gulp watch`, to watch for scss/sass file changes and create the main.css file
+- `java -jar /home/quiles/servers/selenium/selenium-server.jar`, to run selenium server for use for acceptance tests
 - `node_modules/mocha/bin/mocha -w app/tests/acceptance.js -t 10000`, to run acceptance tests using selenium
 - `node_modules/mocha/bin/mocha -w app/tests/unit/helpers.js`, to run unit tests
 
@@ -105,9 +107,16 @@ During development, you might want to have these running:
 node_modules/mocha/bin/mocha app/tests/unit/draw-svg.js
 ```
 ## Running acceptance tests
+One on terminal:
+```
+java -jar /home/quiles/servers/selenium/selenium-server.jar
+```
+to run selenium server for use for acceptance tests
 ```
 node_modules/mocha/bin/mocha app/tests/acceptance.js -t 10000
 ```
+These tests are run on google chrome only for now.
+
 ## Dependencies
 
 To be able to run npm install, you will need:
@@ -126,7 +135,6 @@ To be able to run npm install, you will need:
 - Google Chrome - Version 46.0.2490.80 (64-bit) - Mac OSX
 - Chromium - Version 47.0.2526.16 (64-bit) - Gentoo Linux
 - Safari - Version 9.0.1 (11601.2.7.2)
-- PhantomJs - Version 1.9.8 - Gentoo Linux
 - Mozilla Firefox - Version 41.0.1 - Mac OSX:
 
 Known issues:

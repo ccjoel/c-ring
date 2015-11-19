@@ -67,12 +67,12 @@
 
 	// include the required graph lib
 	var setupGraph = __webpack_require__(1);
-	var drawNodes = __webpack_require__(10);
-	var clearPreviousNodes = __webpack_require__(16);
-	var createArrayFromTextAreaTokens = __webpack_require__(17);
-	var resizeContainer = __webpack_require__(19);
-	var filterNodesByToken = __webpack_require__(20).filter;
-	var clearFilter = __webpack_require__(20).clear;
+	var drawNodes = __webpack_require__(6);
+	var clearPreviousNodes = __webpack_require__(12);
+	var createArrayFromTextAreaTokens = __webpack_require__(13);
+	var resizeContainer = __webpack_require__(15);
+	var filterNodesByToken = __webpack_require__(16).filter;
+	var clearFilter = __webpack_require__(16).clear;
 
 
 	// ---------------------------- DOM elements -----------------------------------
@@ -198,11 +198,11 @@
 /***/ function(module, exports, __webpack_require__) {
 
 	var d3 = __webpack_require__(2);
-	var assert = __webpack_require__(21).assert;
+	var assert = __webpack_require__(3).assert;
 
-	var GRAPH_RING_RADIUS_MULTIPLIER = __webpack_require__(8).GRAPH_RING_RADIUS_MULTIPLIER;
+	var GRAPH_RING_RADIUS_MULTIPLIER = __webpack_require__(4).GRAPH_RING_RADIUS_MULTIPLIER;
 
-	var nodesUnderCursor = __webpack_require__(9);
+	var nodesUnderCursor = __webpack_require__(5);
 
 	/**
 	 *
@@ -9817,12 +9817,121 @@
 	}();
 
 /***/ },
-/* 3 */,
-/* 4 */,
-/* 5 */,
-/* 6 */,
-/* 7 */,
-/* 8 */
+/* 3 */
+/***/ function(module, exports) {
+
+	// http://stackoverflow.com/questions/1382107/whats-a-good-way-to-extend-error-in-javascript
+
+	function AssertionError(message) {
+	  this.constructor.prototype.__proto__ = Error.prototype;
+	  this.name = this.constructor.name;
+	  this.message = message;
+	}
+
+	exports.assert = function(test, message) {
+	  if (!test) {
+	    throw new AssertionError(message);
+	  }
+	}
+
+
+	// Thought of using these
+	/*
+	// From Javascript: The Good Parts
+	Function.prototype.method = function(name, func) {
+	  if (!this.prototype[name]) {
+	    this.prototype[name] = func;
+	    return this;
+	  }
+	};
+
+	// From Javascript: The Good Parts
+	if (typeof Object.create !== 'function') {
+	  Object.create = function(o) {
+	    var F = function() {};
+	    F.prototype = o;
+	    return new F();
+	  };
+	}
+	*/
+
+	/*
+	 * es6 transpiled Error inheritance. Messy in es5:
+
+	'use strict';
+
+	var _get = function get(_x, _x2, _x3) {
+	  var _again = true;
+	  _function: while (_again) {
+	    var object = _x,
+	      property = _x2,
+	      receiver = _x3;
+	    _again = false;
+	    if (object === null) object = Function.prototype;
+	    var desc = Object.getOwnPropertyDescriptor(object, property);
+	    if (desc === undefined) {
+	      var parent = Object.getPrototypeOf(object);
+	      if (parent === null) {
+	        return undefined;
+	      } else {
+	        _x = parent;
+	        _x2 = property;
+	        _x3 = receiver;
+	        _again = true;
+	        desc = parent = undefined;
+	        continue _function;
+	      }
+	    } else if ('value' in desc) {
+	      return desc.value;
+	    } else {
+	      var getter = desc.get;
+	      if (getter === undefined) {
+	        return undefined;
+	      }
+	      return getter.call(receiver);
+	    }
+	  }
+	};
+
+	function _classCallCheck(instance, Constructor) {
+	  if (!(instance instanceof Constructor)) {
+	    throw new TypeError('Cannot call a class as a function');
+	  }
+	}
+
+	function _inherits(subClass, superClass) {
+	  if (typeof superClass !== 'function' && superClass !== null) {
+	    throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass);
+	  }
+	  subClass.prototype = Object.create(superClass && superClass.prototype, {
+	    constructor: {
+	      value: subClass,
+	      enumerable: false,
+	      writable: true,
+	      configurable: true
+	    }
+	  });
+	  if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
+	}
+
+	var AssertionError = (function(_Error) {
+	  _inherits(AssertionError, _Error);
+
+	  function AssertionError(message) {
+	    _classCallCheck(this, AssertionError);
+
+	    _get(Object.getPrototypeOf(AssertionError.prototype), 'constructor', this).call(this, message);
+	    this.message = message;
+	    this.name = 'AssertionError';
+	  }
+
+	  return AssertionError;
+	})(Error);
+	*/
+
+
+/***/ },
+/* 4 */
 /***/ function(module, exports) {
 
 	
@@ -9854,8 +9963,170 @@
 	];
 
 
+	var moreTestValues = [ '87070775190705847597532955573826158592',
+	  '89070958651177079329222259289710264320',
+	  '91071142111648311060911563005594370048',
+	  '93071325572119542792600866721478475776',
+	  '95071509032590774524290170437362581504',
+	  '97071692493062006255979474153246687232',
+	  '99071875953533237987668777869130792960',
+	  '101072059414004469719358081585014898688',
+	  '103072242874475701451047385300899004416',
+	  '105072426334946933182736689016783110144',
+	  '107072609795418164914425992732667215872',
+	  '109072793255889396646115296448551321600',
+	  '111072976716360628377804600164435427328',
+	  '113073160176831860109493903880319533056',
+	  '115073343637303091841183207596203638784',
+	  '117073527097774323572872511312087744512',
+	  '119073710558245555304561815027971850240',
+	  '121073894018716787036251118743855955968',
+	  '123074077479188018767940422459740061696',
+	  '125074260939659250499629726175624167424',
+	  '127074444400130482231319029891508273152',
+	  '129074627860601713963008333607392378880',
+	  '131074811321072945694697637323276484608',
+	  '133074994781544177426386941039160590336',
+	  '135075178242015409158076244755044696064',
+	  '137075361702486640889765548470928801792',
+	  '44535479325588539664611129644855132160',
+	  '46535662786059771396300433360739237888',
+	  '48535846246531003127989737076623343616',
+	  '50536029707002234859679040792507449344',
+	  '52536213167473466591368344508391555072',
+	  '54536396627944698323057648224275660800',
+	  '56536580088415930054746951940159766528',
+	  '58536763548887161786436255656043872256',
+	  '60536947009358393518125559371927977984',
+	  '62537130469829625249814863087812083712',
+	  '64537313930300856981504166803696189440',
+	  '66537497390772088713193470519580295168',
+	  '68537680851243320444882774235464400896',
+	  '70537864311714552176572077951348506624',
+	  '72538047772185783908261381667232612352',
+	  '74538231232657015639950685383116718080',
+	  '76538414693128247371639989099000823808',
+	  '78538598153599479103329292814884929536',
+	  '80538781614070710835018596530769035264',
+	  '82538965074541942566707900246653140992',
+	  '84539148535013174298397203962537246720',
+	  '86539331995484406030086507678421352448',
+	  '88539515455955637761775811394305458176',
+	  '90539698916426869493465115110189563904',
+	  '92539882376898101225154418826073669632',
+	  '94540065837369332956843722541957775360',
+	  '12634007426750558714919760198126862336',
+	  '14634190887221790446609063914010968064',
+	  '16634374347693022178298367629895073792',
+	  '18634557808164253909987671345779179520',
+	  '20634741268635485641676975061663285248',
+	  '22634924729106717373366278777547390976',
+	  '24635108189577949105055582493431496704',
+	  '26635291650049180836744886209315602432',
+	  '28635475110520412568434189925199708160',
+	  '30635658570991644300123493641083813888',
+	  '32635842031462876031812797356967919616',
+	  '34636025491934107763502101072852025344',
+	  '36636208952405339495191404788736131072',
+	  '38636392412876571226880708504620236800',
+	  '40636575873347802958570012220504342528',
+	  '42636759333819034690259315936388448256',
+	  '44636942794290266421948619652272553984',
+	  '46637126254761498153637923368156659712',
+	  '48637309715232729885327227084040765440',
+	  '50637493175703961617016530799924871168',
+	  '52637676636175193348705834515808976896',
+	  '54637860096646425080395138231693082624',
+	  '56638043557117656812084441947577188352',
+	  '58638227017588888543773745663461294080',
+	  '60638410478060120275463049379345399808',
+	  '62638593938531352007152353095229505536',
+	  '64638777399002583738841656811113611264',
+	  '66638960859473815470530960526997716992',
+	  '68639144319945047202220264242881822720',
+	  '70639327780416278933909567958765928448',
+	  '72639511240887510665598871674650034176',
+	  '74639694701358742397288175390534139904',
+	  '76639878161829974128977479106418245632',
+	  '78640061622301205860666782822302351360',
+	  '80640245082772437592356086538186457088',
+	  '82640428543243669324045390254070562816',
+	  '84640612003714901055734693969954668544',
+	  '86640795464186132787423997685838774272',
+	  '88640978924657364519113301401722880000',
+	  '4658639452041063477496917836444794880',
+	  '6658822912512295209186221552328900608',
+	  '8659006372983526940875525268213006336',
+	  '10659189833454758672564828984097112064',
+	  '12659373293925990404254132699981217792',
+	  '14659556754397222135943436415865323520',
+	  '16659740214868453867632740131749429248',
+	  '18659923675339685599322043847633534976',
+	  '20660107135810917331011347563517640704',
+	  '22660290596282149062700651279401746432',
+	  '24660474056753380794389954995285852160',
+	  '26660657517224612526079258711169957888',
+	  '28660840977695844257768562427054063616',
+	  '30661024438167075989457866142938169344',
+	  '32661207898638307721147169858822275072',
+	  '34661391359109539452836473574706380800',
+	  '36661574819580771184525777290590486528',
+	  '38661758280052002916215081006474592256',
+	  '40661941740523234647904384722358697984',
+	  '42662125200994466379593688438242803712',
+	  '44662308661465698111282992154126909440',
+	  '46662492121936929842972295870011015168',
+	  '48662675582408161574661599585895120896',
+	  '50662859042879393306350903301779226624',
+	  '52663042503350625038040207017663332352',
+	  '54663225963821856769729510733547438080',
+	  '56663409424293088501418814449431543808',
+	  '58663592884764320233108118165315649536',
+	  '60663776345235551964797421881199755264',
+	  '62663959805706783696486725597083860992',
+	  '64664143266178015428176029312967966720',
+	  '66664326726649247159865333028852072448',
+	  '68664510187120478891554636744736178176',
+	  '70664693647591710623243940460620283904',
+	  '72664877108062942354933244176504389632',
+	  '74665060568534174086622547892388495360',
+	  '76665244029005405818311851608272601088',
+	  '78665427489476637550001155324156706816',
+	  '80665610949947869281690459040040812544',
+	  '88070866920941463463377607431768211456',
+	  '91071142111648311060911563005594370048',
+	  '94071417302355158658445518579420528640',
+	  '97071692493062006255979474153246687232',
+	  '100071967683768853853513429727072845824',
+	  '103072242874475701451047385300899004416',
+	  '106072518065182549048581340874725163008',
+	  '109072793255889396646115296448551321600',
+	  '112073068446596244243649252022377480192',
+	  '115073343637303091841183207596203638784',
+	  '118073618828009939438717163170029797376',
+	  '121073894018716787036251118743855955968',
+	  '124074169209423634633785074317682114560',
+	  '127074444400130482231319029891508273152',
+	  '130074719590837329828852985465334431744',
+	  '133074994781544177426386941039160590336',
+	  '136075269972251025023920896612986748928',
+	  '139075545162957872621454852186812907520',
+	  '142075820353664720218988807760639066112',
+	  '145076095544371567816522763334465224704',
+	  '148076370735078415414056718908291383296',
+	  '151076645925785263011590674482117541888',
+	  '154076921116492110609124630055943700480',
+	  '157077196307198958206658585629769859072',
+	  '160077471497905805804192541203596017664',
+	  '163077746688612653401726496777422176256',
+	  '166078021879319500999260452351248334848',
+	  '169078297070026348596794407925074493440',
+	  '172078572260733196194328363498900652032',
+	  '175078847451440043791862319072726810624' ]
+
+
 /***/ },
-/* 9 */
+/* 5 */
 /***/ function(module, exports) {
 
 	/**
@@ -9900,12 +10171,12 @@
 
 
 /***/ },
-/* 10 */
+/* 6 */
 /***/ function(module, exports, __webpack_require__) {
 
 	
-	var assert = __webpack_require__(21).assert;
-	var drawNode = __webpack_require__(11);
+	var assert = __webpack_require__(3).assert;
+	var drawNode = __webpack_require__(7);
 
 	/**
 	 * Function that calls drawNode and draws all nodes
@@ -9928,7 +10199,7 @@
 
 
 /***/ },
-/* 11 */
+/* 7 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -9941,20 +10212,20 @@
 
 	// ------------------------------ NPM IMPORTS ----------------------------------
 
-	var assert = __webpack_require__(21).assert; // node assertion library- in the browser!
+	var assert = __webpack_require__(3).assert; // node assertion library- in the browser!
 	var d3 = __webpack_require__(2); // Used to create svg graphs
-	var randomRGB = __webpack_require__(12); // Generate random colors for the node
+	var randomRGB = __webpack_require__(8); // Generate random colors for the node
 
 	// ------------------------------ lib imports ----------------------------------
 
-	var getRatioOfToken = __webpack_require__(13);
+	var getRatioOfToken = __webpack_require__(9);
 
 	// ----------------------------- file globals ----------------------------------
 
 	var UNIT_CIRCLE_RADIUS = 1; // max radius value in graph circle
 	// To modify size of ring or nodes
-	var GRAPH_RING_RADIUS_MULTIPLIER = __webpack_require__(8).GRAPH_RING_RADIUS_MULTIPLIER;
-	var GRAPH_NODE_RADIUS_MULTIPLIER = __webpack_require__(8).GRAPH_NODE_RADIUS_MULTIPLIER;
+	var GRAPH_RING_RADIUS_MULTIPLIER = __webpack_require__(4).GRAPH_RING_RADIUS_MULTIPLIER;
+	var GRAPH_NODE_RADIUS_MULTIPLIER = __webpack_require__(4).GRAPH_NODE_RADIUS_MULTIPLIER;
 
 	// ------------------------------ Functions ------------------------------------
 
@@ -10064,7 +10335,7 @@
 
 
 /***/ },
-/* 12 */
+/* 8 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// randomColor by David Merfield under the MIT license
@@ -10475,20 +10746,20 @@
 	}));
 
 /***/ },
-/* 13 */
+/* 9 */
 /***/ function(module, exports, __webpack_require__) {
 
 	
 	// ------------------------------ imports --------------------------------------
 
-	var BigNumber = __webpack_require__(14).n; // to work with BIG numbers in javascript :)
+	var BigNumber = __webpack_require__(10).n; // to work with BIG numbers in javascript :)
 	// Supported BigNumber methods: add/plus, minus/subtract,
 	// multiply/mult, divide/div, power/pow, mod,
 	// equals, lt, lte, gt, gte, isZero, abs
 	// Sample : var big = BigNumber(5).plus(97).minus(53).plus(434).multiply(5435423).add(321453).multiply(21).div(2).pow(2);
 	// Sample out: 760056543044267246001 // when converting to string
 
-	var assert = __webpack_require__(21).assert;
+	var assert = __webpack_require__(3).assert;
 
 	// ------------------------------ globals -------------------------------------
 
@@ -10547,14 +10818,14 @@
 
 
 /***/ },
-/* 14 */
+/* 10 */
 /***/ function(module, exports, __webpack_require__) {
 
-	module.exports = __webpack_require__(15);
+	module.exports = __webpack_require__(11);
 
 
 /***/ },
-/* 15 */
+/* 11 */
 /***/ function(module, exports) {
 
 	/*!
@@ -10939,7 +11210,7 @@
 
 
 /***/ },
-/* 16 */
+/* 12 */
 /***/ function(module, exports) {
 
 	/**
@@ -10975,11 +11246,11 @@
 
 
 /***/ },
-/* 17 */
+/* 13 */
 /***/ function(module, exports, __webpack_require__) {
 
 	
-	var cleanInput = __webpack_require__(18);
+	var cleanInput = __webpack_require__(14);
 
 	/**
 	 * Receives a node string, like the one from the input text area, given the format
@@ -11016,7 +11287,7 @@
 
 
 /***/ },
-/* 18 */
+/* 14 */
 /***/ function(module, exports) {
 
 	/**
@@ -11044,7 +11315,7 @@
 
 
 /***/ },
-/* 19 */
+/* 15 */
 /***/ function(module, exports) {
 
 	/**
@@ -11091,11 +11362,11 @@
 
 
 /***/ },
-/* 20 */
+/* 16 */
 /***/ function(module, exports, __webpack_require__) {
 
 	
-	var cleanInput = __webpack_require__(18);
+	var cleanInput = __webpack_require__(14);
 
 	/**
 	 * Filter function is a dom event handler. The only use case for now, is to
@@ -11124,13 +11395,17 @@
 	};
 
 	/**
-	* If you have moved the nodes while govering groups, we need to restore their position
+	* If you have moved the nodes while hovering groups, we need to restore their position
 	*/
 	function reorganizeNodes() {
 	  var allNodes = document.querySelectorAll('.node');
 	  for (var i in allNodes) {
 	    if(allNodes.hasOwnProperty(i) && i !== 'length') {
-	      allNodes[i].spaceBackIn();
+	      try{
+	        allNodes[i].spaceBackIn();
+	      } catch(e) {
+	        console.log('Unable to space back in node. Too many nodes!');
+	      }
 	    }
 	  }
 	}
@@ -11164,120 +11439,6 @@
 	    }
 	  }
 	}
-
-
-/***/ },
-/* 21 */
-/***/ function(module, exports) {
-
-	// http://stackoverflow.com/questions/1382107/whats-a-good-way-to-extend-error-in-javascript
-
-	function AssertionError(message) {
-	  this.constructor.prototype.__proto__ = Error.prototype;
-	  this.name = this.constructor.name;
-	  this.message = message;
-	}
-
-	exports.assert = function(test, message) {
-	  if (!test) {
-	    throw new AssertionError(message);
-	  }
-	}
-
-
-	// Thought of using these
-	/*
-	// From Javascript: The Good Parts
-	Function.prototype.method = function(name, func) {
-	  if (!this.prototype[name]) {
-	    this.prototype[name] = func;
-	    return this;
-	  }
-	};
-
-	// From Javascript: The Good Parts
-	if (typeof Object.create !== 'function') {
-	  Object.create = function(o) {
-	    var F = function() {};
-	    F.prototype = o;
-	    return new F();
-	  };
-	}
-	*/
-
-	/*
-	 * es6 transpiled Error inheritance. Messy in es5:
-
-	'use strict';
-
-	var _get = function get(_x, _x2, _x3) {
-	  var _again = true;
-	  _function: while (_again) {
-	    var object = _x,
-	      property = _x2,
-	      receiver = _x3;
-	    _again = false;
-	    if (object === null) object = Function.prototype;
-	    var desc = Object.getOwnPropertyDescriptor(object, property);
-	    if (desc === undefined) {
-	      var parent = Object.getPrototypeOf(object);
-	      if (parent === null) {
-	        return undefined;
-	      } else {
-	        _x = parent;
-	        _x2 = property;
-	        _x3 = receiver;
-	        _again = true;
-	        desc = parent = undefined;
-	        continue _function;
-	      }
-	    } else if ('value' in desc) {
-	      return desc.value;
-	    } else {
-	      var getter = desc.get;
-	      if (getter === undefined) {
-	        return undefined;
-	      }
-	      return getter.call(receiver);
-	    }
-	  }
-	};
-
-	function _classCallCheck(instance, Constructor) {
-	  if (!(instance instanceof Constructor)) {
-	    throw new TypeError('Cannot call a class as a function');
-	  }
-	}
-
-	function _inherits(subClass, superClass) {
-	  if (typeof superClass !== 'function' && superClass !== null) {
-	    throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass);
-	  }
-	  subClass.prototype = Object.create(superClass && superClass.prototype, {
-	    constructor: {
-	      value: subClass,
-	      enumerable: false,
-	      writable: true,
-	      configurable: true
-	    }
-	  });
-	  if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
-	}
-
-	var AssertionError = (function(_Error) {
-	  _inherits(AssertionError, _Error);
-
-	  function AssertionError(message) {
-	    _classCallCheck(this, AssertionError);
-
-	    _get(Object.getPrototypeOf(AssertionError.prototype), 'constructor', this).call(this, message);
-	    this.message = message;
-	    this.name = 'AssertionError';
-	  }
-
-	  return AssertionError;
-	})(Error);
-	*/
 
 
 /***/ }
