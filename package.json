@@ -19,7 +19,7 @@
   "author": "Joel M Quiles",
   "license": "ISC",
   "devDependencies": {
-    "chai": "3.5.1",
+    "chai": "3.5.0",
     "gulp": "3.9.1",
     "mocha": "2.5.3",
     "selenium-webdriver": "2.53.3",
