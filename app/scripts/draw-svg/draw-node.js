@@ -28,7 +28,7 @@ var GRAPH_NODE_RADIUS_MULTIPLIER = require('../constants').GRAPH_NODE_RADIUS_MUL
 
 /**
  * Draw a node, given a token/id. It needs to find the ratio of the given
- * token from the max allowed token, in  other to find the place in the Ring,
+ * token from the max allowed token, in other to find the place in the Ring,
  * using trigonometry.
  *
  * @param {!Array} nodeArray list of strings with node tokens
@@ -64,7 +64,7 @@ module.exports = function(nodeToken, configuration) {
   // ratio between the provided node token value and max token
   var ratio = getRatioOfToken(nodeToken);
 
-// unable to divide by 0. If it's 0 then it's ~almost the same as 1
+  // unable to divide by 0. If it's 0 then it's ~almost the same as 1
   ratio = (ratio === 0) ? 1.0 : ratio;
   // position of circle as radians
   var positionInCircle = 2 * Math.PI / ratio;
@@ -87,40 +87,45 @@ module.exports = function(nodeToken, configuration) {
     .attr("r", nodeRadius) // Set radius of the node
     // translate node along arc to its position
     .attr("transform", "translate(" + nodeTokenArcRadius * y + "," + -nodeTokenArcRadius * x + ")")
-    .style("fill", randomColor)
+    .style("fill", randomColor);
 
   // previously added token normal javascript reference
-  var node = document.querySelector(".node" + nodeToken)
+  var node = document.querySelector(".node" + nodeToken);
 
   // Add click listener in case
   node.addEventListener('click', function() {
     console.log('Clicked Node Token: ', nodeToken);
   });
 
+  // This was a weird handler, that would move the nodes out of the way when hovering over there,
+  // only when there were multiple nodes overlapping. It was weird in the sense that it was yanky,
+  // they would jump around and not get back to their original location. We can come up with something
+  // better later
+
   /*
    * Space out tokens when they are on top of each other*/
-  node.spaceOut = function() {
-    // TODO: pass element so that we don't need to use a d3 selector
-    // TODO: Better algorithm. This one is super simple for demo/interview/exercise
-    var constantPositionTranform = 50;
-    var randomX = getRandomArbitrary(-120, 120) > 80 ? 1 : -1;
-    var randomY = getRandomArbitrary(-30, 30) > 15 ? 1 : -1;
-    d3.select(".node" + nodeToken)
-      .attr("transform", "translate(" +
-        (nodeTokenArcRadius +
-        (constantPositionTranform*randomY)) * y +
-        "," +
-        (-nodeTokenArcRadius - (constantPositionTranform*randomX)) * x +
-        ")");
-  };
+  // node.spaceOut = function() {
+  //   // TODO: pass element so that we don't need to use a d3 selector
+  //   // TODO: Better algorithm. This one is super simple for demo/interview/exercise
+  //   var constantPositionTranform = 50;
+  //   var randomX = getRandomArbitrary(-120, 120) > 80 ? 1 : -1;
+  //   var randomY = getRandomArbitrary(-30, 30) > 15 ? 1 : -1;
+  //   d3.select(".node" + nodeToken)
+  //     .attr("transform", "translate(" +
+  //       (nodeTokenArcRadius +
+  //       (constantPositionTranform*randomY)) * y +
+  //       "," +
+  //       (-nodeTokenArcRadius - (constantPositionTranform*randomX)) * x +
+  //       ")");
+  // };
 
-  node.spaceBackIn = function() {
-    d3.select(".node" + nodeToken)
-      .attr("transform", "translate(" +
-        nodeTokenArcRadius * y + "," + -nodeTokenArcRadius * x + ")")
-  }
+  // node.spaceBackIn = function() {
+  //   d3.select(".node" + nodeToken)
+  //     .attr("transform", "translate(" +
+  //       nodeTokenArcRadius * y + "," + -nodeTokenArcRadius * x + ")")
+  // }
 
-} // end draw-node
+}; // end draw-node
 
 // from : https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/random
 // Returns a random number between min (inclusive) and max (exclusive)

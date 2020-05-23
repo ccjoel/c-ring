@@ -29,11 +29,11 @@ module.exports = function(event) {
     allElementsClicked[i].style.visibility = "";
   }
 
-  if(nodesUnderneath.length > 2) {
-    // there are two or more tokens under mouse
-    nodesUnderneath.forEach(function(node) {
-      node.spaceOut();
-    })
-  }
+  // if (nodesUnderneath.length > 2) {
+  //   // there are two or more tokens under mouse
+  //   nodesUnderneath.forEach(function(node) {
+  //     node.spaceOut();
+  //   });
+  // }
 
-}
+};

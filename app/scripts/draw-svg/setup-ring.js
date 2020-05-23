@@ -59,4 +59,4 @@ module.exports = function(width, height, svgTargetElementId) {
     radius: radius
   };
 
-}
+};

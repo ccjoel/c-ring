@@ -4,7 +4,9 @@
   "description": "Implement a small feature of OpsCenter for interview purposes -> Cassandra Cluster Ring",
   "main": "index.html",
   "scripts": {
-    "test": "node_modules/mocha/bin/mocha app/tests/unit/draw-svg.js"
+    "test": "node_modules/mocha/bin/mocha app/tests/unit/draw-svg.js",
+    "build": "webpack",
+    "build:watch": "webpack --progress --colors --watch"
   },
   "keywords": [
     "opscenter",
@@ -17,16 +19,18 @@
   "author": "Joel M Quiles",
   "license": "ISC",
   "devDependencies": {
-    "chai": "^3.4.1",
-    "gulp": "^3.9.0",
-    "mocha": "^2.3.3",
-    "selenium-webdriver": "^2.48.2"
+    "chai": "3.5.1",
+    "gulp": "3.9.1",
+    "mocha": "2.5.3",
+    "selenium-webdriver": "2.53.3",
+    "webpack": "4.43.0",
+    "webpack-cli": "3.3.11"
   },
   "dependencies": {
-    "big-number": "^0.3.1",
-    "breakpoint-sass": "^2.6.1",
-    "d3": "^3.5.8",
-    "randomcolor": "^0.4.2",
-    "susy": "^2.2.6"
+    "big-number": "0.3.2",
+    "breakpoint-sass": "2.7.1",
+    "d3": "3.5.17",
+    "randomcolor": "0.4.4",
+    "susy": "2.2.14"
   }
 }
