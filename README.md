@@ -1,16 +1,16 @@
 
 # Ops-Ring
 
-<img src="https://github.com/quilesbaker/ops-ring/blob/master/docs/ring.png" width="300">
+<img src="docs/ring.png" width="300">
 
-A small project that implements a small feature of OpsCenter for interview purposes - Cassandra Cluster Ring.
+A small project that implements a Cassandra Cluster ring viewer.
 It should add node by token into correct ring position.
 The image above is just some node art by using random RGB nodes and adding more than 100
 to the ring evenly spaced out.
 
 ## Project Url
 
-<a href="http://ops-ring.cf/" target="_blank">ops-ring.cf</a>
+<a href="http://64.227.22.97:82" target="_blank">http://64.227.22.97:82</a>
 
 # Running Project
 
@@ -153,7 +153,7 @@ For more compatibilities by feature (svg), see [1] under READM appendix.
 
 #### Appendix
 
-<img src="https://github.com/quilesbaker/ops-ring/blob/master/docs/can-i-use-svg.png" width="400">
+<img src="docs/can-i-use-svg.png" width="400">
 
 #### Notes
 
