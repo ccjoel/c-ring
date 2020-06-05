@@ -10,7 +10,7 @@ to the ring evenly spaced out.
 
 ## Project Url
 
-<a href="http://64.227.22.97:82" target="_blank">http://64.227.22.97:82</a>
+<a href="https://github.com/teh0xqb/c-ring" target="_blank">https://github.com/teh0xqb/c-ring</a>
 
 # Running Project
 
