@@ -24,7 +24,7 @@
     "mocha": "2.5.3",
     "selenium-webdriver": "2.53.3",
     "webpack": "4.43.0",
-    "webpack-cli": "3.3.11"
+    "webpack-cli": "3.3.12"
   },
   "dependencies": {
     "big-number": "0.3.2",
